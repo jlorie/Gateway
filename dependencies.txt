@@ -1,0 +1,5 @@
+ 
+libqt4-sql
+libqt4-sql-sqlite
+libsqlite3-0
+libsqlite3-dev
