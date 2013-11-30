@@ -142,6 +142,27 @@ namespace Gateway
                 devInfo.name = portInfo.portName();
             }
 
+//            qDebug() << "\nPort:" << portInfo.portName();
+//            qDebug() << "Location:" << portInfo.systemLocation();
+//            qDebug() << "Description:" << portInfo.description();
+//            qDebug() << "Manufacturer:" << portInfo.manufacturer();
+//            qDebug() << "Vendor Identifier:" << (portInfo.hasVendorIdentifier() ? QByteArray::number(portInfo.vendorIdentifier(), 16) : QByteArray());
+//            qDebug() << "Product Identifier:" << (portInfo.hasProductIdentifier() ? QByteArray::number(portInfo.productIdentifier(), 16) : QByteArray());
+//            qDebug() << "Busy:" << (portInfo.isBusy() ? QObject::tr("Yes") : QObject::tr("No"));
+
+//            QSerialPort *port = new QSerialPort(portInfo);
+//            if (port->open(QIODevice::ReadWrite)) {
+//                qDebug() << "Baud rate:" << port->baudRate();
+//                qDebug() << "Data bits:" << port->dataBits();
+//                qDebug() << "Stop bits:" << port->stopBits();
+//                qDebug() << "Parity:" << port->parity();
+//                qDebug() << "Flow control:" << port->flowControl();
+//                qDebug() << "Read buffer size:" << port->readBufferSize();
+//                port->close();
+//            } else {
+//                qDebug() << "Unable to open port, error code" << port->error();
+//            }
+
             createDevice(devInfo);
         }
     }

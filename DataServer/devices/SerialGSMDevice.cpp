@@ -72,7 +72,11 @@ namespace Gateway
 
     void SerialGSMDevice::messageReceived(const QString &frame)
     {
+        qDebug("Message Received");
         AbstractRecord *newRecord = _message.disassemble(frame);
+
+        if (!newRecord)
+            return;
 
         if (newRecord->type() == recInconmingMessage)
         {

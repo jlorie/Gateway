@@ -9,6 +9,9 @@
 #include <QNetworkProxy>
 #include <QString>
 
+#include <QStringList>
+#include <QRegExp>
+
 using namespace Gateway;
 
 void setProxy()

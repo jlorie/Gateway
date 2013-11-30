@@ -53,7 +53,7 @@ HEADERS  += ui/mainwindow.h \
     storage/RemoteStorage.hpp \
     ui/Dialog.hpp \
     ui/RemoveRuleDialog.hpp \
-    IPhone.hpp
+    include/IPhone.hpp
 FORMS    += ui/mainwindow.ui \
     ui/Dialog.ui \
     ui/RemoveRuleDialog.ui

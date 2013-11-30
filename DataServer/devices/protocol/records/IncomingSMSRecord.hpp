@@ -5,6 +5,7 @@
 
 #include <QRegExp>
 #include <QString>
+#include <QStringList>
 #include <QDate>
 
 namespace Gateway
@@ -24,18 +25,16 @@ namespace Gateway
         {
                              //"04263214911","","13/10/23,16:06:06-18"\r\nPrueba e,0,0
             //Format => +CMT: "+15196168742","","13/10/21,09:29:28-18"\n1 2 3 testing messaging,0,0
+            //          +CMT: "+447466829521","2013/11/29,21:47:59" 53028742 1 2 3 probando
 
-            QRegExp regExp("^\"([^\"]*)\",\"([^\"]*)\",\"([^\"]*)\"(.+),(\\d),(\\d)$");
-            if (regExp.indexIn(data) > -1 && regExp.captureCount() >= 4)
-            {
-                _destinationNumber = regExp.cap(1).trimmed();
-                _date = QDate::fromString(regExp.cap(3).trimmed(), QString("DD/MM/YY,HH:MM:SS"));
-                _message = regExp.cap(4).trimmed();
-            }
-            else
-            {
-                _valid = false;
-            }
+
+            QStringList values = data.split(QRegExp("[,\\n]"));
+
+            _destinationNumber = values.at(0).trimmed();
+            _date = QDate::fromString(values.at(1) + values.at(2), QString("DD/MM/YY,HH:MM:SS"));
+            _message = values.at(3).trimmed();
+
+            _valid = true;
         }
 
         QString from() const
