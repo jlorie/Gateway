@@ -1,14 +1,18 @@
 #ifndef DEVICEMANAGER_HPP
 #define DEVICEMANAGER_HPP
 
-#include "devices/AbstractGSMDevice.hpp"
-#include "devices/DeviceInfo.hpp"
+#include <include/IDevice.hpp>
+#include <include/IMessage.hpp>
 #include <webapi/TelAPISMS.hpp>
 
 #include <QObject>
+#include <QLibrary>
 
 namespace Gateway
 {
+    typedef QList<QObject *> LibraryList;
+    typedef QList<IDevice *> DeviceList;
+
     class DeviceManager : public QObject
     {
         Q_OBJECT
@@ -18,25 +22,28 @@ namespace Gateway
         static void destroyInstance();
 
         ulong createDevice(const DeviceInfo &info);
-        ulong deleteDevice(const qlonglong deviceID);
+        ulong deleteDevice(const qlonglong deviceId);
 
-        AbstractGSMDevice *deviceForId(qlonglong deviceID) const;
+        IDevice *deviceForId(qlonglong deviceId) const;
 
     signals:
 
     public slots:
-        void redirectSMS(const SMS &sms);        
+        void redirectSMS(const IMessage *message);
 
     private:
         DeviceManager(QObject *parent = 0);
-        void browseSerialDevices();
-        QString ruleFor(const QString &from);
+        ~DeviceManager();
 
+        void browseSerialDevices();
     private:
         static DeviceManager *_instance;
-        QList<AbstractGSMDevice *> _devices;
-        TelAPI *_webapi;
 
+        DeviceList _devices;
+        NumberList _numbers;
+        LibraryList _driverLibraries;
+
+        TelAPI *_webapi;
     };
 }
 #endif // DEVICEMANAGER_HPP

@@ -6,33 +6,23 @@
 
 QT       += sql
 
-QT       -= gui
-
-TARGET = LiteStorage
 TEMPLATE = lib
-
+CONFIG += plugin
 DEFINES += LITESTORAGE_LIBRARY
+TARGET = $$qtLibraryTarget(LiteStorage)
 
-INCLUDEPATH += ../DataServer/include
+DESTDIR       = ../libs
+INSTALLS += target
 
-SOURCES += LiteStorage.cpp \
-    Account.cpp \
-    litestorage_global.cpp
+INCLUDEPATH += ../DataServer
+
+SOURCES += LiteStorage.cpp
 
 HEADERS += LiteStorage.hpp\
-        litestorage_global.hpp \
         IStorage.hpp \
     Rule.hpp \
-    Contact.hpp \
-    Account.hpp
-
-
-
-unix:!symbian {
-    maemo5 {
-        target.path = /opt/usr/lib
-    } else {
-        target.path = /usr/lib
-    }
-    INSTALLS += target
-}
+    include/IStorage.hpp \
+    include/IRule.hpp \
+    include/IContact.hpp \
+    include/IAccount.hpp \
+    ../DataServer/include/IRule.hpp

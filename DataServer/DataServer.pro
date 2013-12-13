@@ -14,46 +14,19 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-    ui/mainwindow.cpp \
-    devices/AbstractGSMDevice.cpp \    
-    devices/SerialGSMDevice.cpp \
     webapi/TelAPISMS.cpp \
     DeviceManager.cpp \
-    devices/physical/SerialPhysicalLayer.cpp \
-    devices/protocol/ATMessage.cpp \
-    AccountManager.cpp \
-    storage/Storage.cpp \
-    storage/LocalStorage.cpp \
-    storage/RemoteStorage.cpp \
-    ui/Dialog.cpp \
-    ui/RemoveRuleDialog.cpp
+    Storage.cpp
 
 HEADERS  += ui/mainwindow.h \
-    common/CommonErrors.hpp \
-    common/SMS.hpp \
-    devices/DeviceInfo.hpp \
-    devices/AbstractGSMDevice.hpp \    
-    devices/SerialGSMDevice.hpp \    
-    devices/physical/SerialPhysicalLayer.hpp \
-    devices/physical/IPhysicalLayer.hpp \
-    devices/protocol/records/IncomingSMSRecord.hpp \
-    devices/protocol/ATMessage.hpp \
-    devices/protocol/ATCommand.hpp \
-    devices/protocol/AbstractRecord.hpp \
-    devices/protocol/records/AbstractRecord.hpp \
-    webapi/TelAPISMS.hpp \
-    DeviceManager.hpp \
-    AccountManager.hpp \    
+    include/CommonErrors.hpp \
     include/IStorage.hpp \
     include/IRule.hpp \
-    include/IContact.hpp \
-    include/IAccount.hpp \
-    storage/Storage.hpp \
-    storage/LocalStorage.hpp \
-    storage/RemoteStorage.hpp \
-    ui/Dialog.hpp \
-    ui/RemoveRuleDialog.hpp \
-    include/IPhone.hpp
-FORMS    += ui/mainwindow.ui \
-    ui/Dialog.ui \
-    ui/RemoveRuleDialog.ui
+    common/SMS.hpp \
+    webapi/TelAPISMS.hpp \
+    DeviceManager.hpp \
+    Storage.hpp \
+    include/IDevice.hpp \
+    include/IPhoneNumber.hpp \
+    include/IMessage.hpp \         
+    common/Rule.hpp

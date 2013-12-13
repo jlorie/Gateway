@@ -1,11 +1,19 @@
 #include "DeviceManager.hpp"
-#include <common/CommonErrors.hpp>
-#include <devices/SerialGSMDevice.hpp>
 
 #include <QDebug>
 #include <QThread>
+#include <QFile>
+#include <QPluginLoader>
 
-#include <storage/LocalStorage.hpp>
+#include <QSerialPort>
+#include <QSerialPortInfo>
+
+#include <include/CommonErrors.hpp>
+#include <include/IDevice.hpp>
+#include <Storage.hpp>
+#include <common/Rule.hpp>
+
+const QString gsm_driver_library("/home/lorie/workspace/My Projects/_qt-builds/build-gateway-Desktop-Debug/libs/libGSMDriver.so");
 
 namespace Gateway
 {
@@ -13,7 +21,7 @@ namespace Gateway
 
     void DeviceManager::initialize()
     {
-        if (!_instance)        
+        if (!_instance)
             _instance = new DeviceManager;
     }
 
@@ -25,69 +33,81 @@ namespace Gateway
     void DeviceManager::destroyInstance()
     {
         if (_instance)
+        {
             delete _instance;
+        }
 
         _instance = 0;
     }
 
     ulong DeviceManager::createDevice(const DeviceInfo &info)
     {
-        ulong result = Errors::OK;        
+        ulong result = Error::OK;
 
-        // TODO implementar una fabrica de Device
-        AbstractGSMDevice *device;
-        if (info.protocol == "serial")
+        IDevice *device = 0;
         {
-            device = new SerialGSMDevice(info);
-        }
+            foreach (QObject *driver, _driverLibraries)
+            {
+                device = qobject_cast<IDevice *>(driver);
+                if (device)
+                    break;
+            }        
+            if (!device)
+            {
+                qWarning("Could not find driver for device %s", qPrintable(info.value("device_name")));
+            }
+            else
+            if (device->initialize(info) == Error::OK)
+            {
+                qWarning() << "Device " <<  info.value(QString("device_name"), QString("Unknown")) << "initialized ...";
 
-        if (device->initialize())
-        {
-            qWarning() << "Device " <<  device->info().name << "initialized ...";
+                _devices.append(device);
+                _numbers.append(device->phoneNumbers());
 
-            _devices.append(device);
+                qRegisterMetaType<IMessage *>("IMessage *");
+                foreach (IPhoneNumber *phoneNumber, device->phoneNumbers())
+                {
+                    connect(phoneNumber, SIGNAL(newMessageReceived(const IMessage*)), this, SLOT(redirectSMS(const IMessage *)));
+                }
 
-            qRegisterMetaType<SMS>("SMS");
-            connect(device, SIGNAL(newSMSReceived(SMS)), this, SLOT(redirectSMS(SMS)));
-
-            QThread *thread = new QThread;
-            device->moveToThread(thread);
-            thread->start();
-        }
-        else
-        {
-            delete device;
-            result = Errors::ErrorInitializingDevice;
+    //            QThread *thread = new QThread;
+    //            device->moveToThread(thread);
+    //            thread->start();
+            }
+            else
+            {
+                result = Error::errDeviceNotInitialized;
+            }
         }
 
         return result;
     }
 
-    ulong DeviceManager::deleteDevice(const qlonglong deviceID)
+    ulong DeviceManager::deleteDevice(const qlonglong deviceId)
     {
-        ulong result = Errors::OK;
+        ulong result = Error::OK;
 
-        AbstractGSMDevice *deviceToDelete = deviceForId(deviceID);
+        IDevice *deviceToDelete = deviceForId(deviceId);
 
         if (deviceToDelete)
         {            
-            deviceToDelete->deleteLater();
+//            deviceToDelete->deleteLater();
         }
         else
         {
-            result = Errors::DeviceNotFound;
+            result = Error::errDeviceNotFound;
         }
 
         return result;
     }
 
-    AbstractGSMDevice *DeviceManager::deviceForId(qlonglong deviceID) const
+    IDevice *DeviceManager::deviceForId(qlonglong deviceId) const
     {
-        AbstractGSMDevice *result = 0;
+        IDevice *result = 0;
 
-        foreach (AbstractGSMDevice *device, _devices)
+        foreach (IDevice *device, _devices)
         {
-            if (device->info().deviceID == deviceID)
+            if (device->deviceId() == deviceId)
             {
                 result = device;
                 break;
@@ -97,27 +117,72 @@ namespace Gateway
         return result;
     }
 
-    void DeviceManager::redirectSMS(const SMS &sms)
+    void DeviceManager::redirectSMS(const IMessage* message)
     {        
-        qDebug() << "Redirecting sms ...";
-        qDebug() << sms.toString();
-
-        // Contacts
-//        QString twilioNumber("+13852157548");
-//        QString osmarNumber("+17862180956");
-        QString telapiNumber("+15305765603");
-
-        QString to(ruleFor(sms.from()));
-        if (!to.isEmpty())
+        if (message)
         {
-            _webapi->sendSMS(telapiNumber, to, sms.body());
+            qDebug(">> Incomming message ...");
+            qDebug("    from: %s", qPrintable(message->from()));
+            qDebug("    to: %s", qPrintable(message->to()));
+            qDebug("    body: %s", qPrintable(message->body()));
+            // Contacts
+//            QString twilioNumber("+13852157548");
+//            QString osmarNumber("+17862180956");
+//            QString telapiNumber("+15305765603");
+
+    //        QString to(ruleFor(message->from()));
+            Storage *storage = Storage::instance();
+            IRule *redirectRule (storage->ruleFor(new Rule(message->from(), message->to())));
+            if (redirectRule)
+            {
+                qDebug(">> Redirecting message ...");
+                qDebug("    from: %s", qPrintable(redirectRule->from()));
+                qDebug("    to: %s", qPrintable(redirectRule->to()));
+                qDebug("    body: %s", qPrintable(message->body()));
+
+                _webapi->sendSMS(redirectRule->from(), redirectRule->to(), message->body());
+            }
+            else
+            {
+                qWarning("No rule found for previous message");
+            }
+        }
+        else
+        {
+            qWarning("No message found");
         }
     }
 
     DeviceManager::DeviceManager(QObject *parent) :
         QObject(parent)
     {
+        // Loading gsm drivers
+        {
+            // TODO reconocer las bibliotecas dentro de un directorio
+            QString fileName(gsm_driver_library);
+
+            if (QFile::exists(fileName))
+            {
+                QPluginLoader loader(fileName);
+                QObject *library = loader.instance();
+                if (library)
+                {
+                    qDebug("Plugin found: %s", qPrintable(fileName));
+                    _driverLibraries.append(library);
+                }
+                else
+                {
+                    qWarning("Could not open library: %s", qPrintable(fileName));
+                }
+            }
+            else
+            {
+                qWarning("Could not find library %s", qPrintable(fileName));
+            }
+        }
+
         browseSerialDevices();
+        //-------------------------------------------------------
 
         QString username("AC5d198c28d93f4ae9912408c0bffc47c2");
         QString password("2260cd6a2f4f4145a3f2a73d42b3d472");
@@ -125,21 +190,29 @@ namespace Gateway
         _webapi = new TelAPI(username, password, this);
     }
 
+    DeviceManager::~DeviceManager()
+    {
+        foreach (QObject *library, _driverLibraries)
+        {
+            delete library;
+        }
+    }
+
     #include <QSerialPort>
     #include <QSerialPortInfo>
 
     void DeviceManager::browseSerialDevices()
     {
-        qWarning(">> Browsing serial devices ...");
+        qDebug(">> Browsing serial devices ...");
 
         foreach (QSerialPortInfo portInfo, QSerialPortInfo::availablePorts())
         {
             DeviceInfo devInfo;
             {
-                devInfo.deviceID = (qlonglong)1; // FIXME
-                devInfo.protocol = QString("serial");
-                devInfo.manufacturer = portInfo.manufacturer();
-                devInfo.name = portInfo.portName();
+                devInfo.insert(QString("manufacturer"), portInfo.manufacturer());
+                devInfo.insert(QString("device_type"), QString("serial"));
+                devInfo.insert(QString("serial_port"), portInfo.portName());
+                devInfo.insert(QString("device_name"), portInfo.portName());
             }
 
 //            qDebug() << "\nPort:" << portInfo.portName();
@@ -165,18 +238,6 @@ namespace Gateway
 
             createDevice(devInfo);
         }
-    }
-
-    QString DeviceManager::ruleFor(const QString &from)
-    {
-        LocalStorage *storage = LocalStorage::instance();
-        foreach (IRule *rule, storage->rules())
-        {
-            if (rule->from() == from)
-                return rule->to();
-        }
-
-        return QString();
     }
 
 }

@@ -1,26 +1,21 @@
 #ifndef SMS_HPP
 #define SMS_HPP
 
+#include <include/IMessage.hpp>
+
 #include <QString>
 #include <QDate>
 
 namespace Gateway
 {
-    enum SMSStatus
-    {
-        stSent,
-        stSending,
-        stQueued
-    };
-
-    class SMS
+    class SMS : public IMessage
     {
     public:
         SMS()
         {}
 
         SMS(const QString &from, const QString &to, const QDate &date,
-            const QString &body, SMSStatus status)
+            const QString &body, MessageStatus status)
         {
             _from = from;
             _to = to;
@@ -70,12 +65,12 @@ namespace Gateway
             return _body;
         }
 
-        void setStatus(SMSStatus status)
+        void setStatus(MessageStatus status)
         {
             _status = status;
         }
 
-        SMSStatus status() const
+        MessageStatus status() const
         {
             return _status;
         }
@@ -91,7 +86,7 @@ namespace Gateway
         QString _to;
         QDate _date;
         QString _body;
-        SMSStatus _status;
+        MessageStatus _status;
     };
 }
 

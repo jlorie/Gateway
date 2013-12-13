@@ -1,13 +1,12 @@
-#include "ui/mainwindow.h"
-
 #include <DeviceManager.hpp>
-#include <AccountManager.hpp>
-#include <storage/LocalStorage.hpp>
-#include <common/CommonErrors.hpp>
+#include <Storage.hpp>
+
+#include <common/Rule.hpp>
 
 #include <QApplication>
 #include <QNetworkProxy>
 #include <QString>
+#include <iostream>
 
 #include <QStringList>
 #include <QRegExp>
@@ -24,24 +23,47 @@ void setProxy()
     QNetworkProxy::setApplicationProxy(proxy);
 }
 
+#include <QFile>
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#define qInstallMessageHandler qInstallMsgHandler
+void MsgOuput(QtMsgType type, const char *msg)
+{
+#else
+void MsgOuput(QtMsgType type, const QMessageLogContext &, const QString& qmsg)
+{
+    const char* msg = qPrintable(qmsg);
+#endif
+
+    switch (type)
+    {
+        case QtDebugMsg:
+            std::cout << "(II) " << msg << std::endl;
+            break;
+        case QtWarningMsg:
+            std::cerr << "(WW) " << msg << std::endl;
+            break;
+        case QtCriticalMsg:
+            std::cerr << "(EE) " << msg << std::endl;
+            break;
+        default:
+            break;
+    }
+}
+
 int main(int argc, char *argv[])
 {
+    qInstallMessageHandler(MsgOuput);
     QApplication a(argc, argv);
-    //    setProxy();
+    setProxy();
 
     StorageConfig config;
-    config["local_storage_library"] = "/home/lorie/workspace/My Projects/_qt-builds/build-gateway-Desktop-Debug/LiteStorage/libLiteStorage.so";
+    config["storage_library"] = "/home/lorie/workspace/My Projects/_qt-builds/build-gateway-Desktop-Debug/libs/libLiteStorage.so";
     config["local_storage_db_path"] = "/home/lorie/workspace/My Projects/_qt-builds/gateway.db";
 
-    qDebug("Initializing LocalStorage");
+    qDebug("Initializing Storage");
     {
-        LocalStorage::initialize(config);
-    //    LocalStorage *localStorage = LocalStorage::instance();
-    }
-
-    qDebug("Initializing AccountManager");
-    {
-         AccountManager::initialize();
+        Storage::initialize(config);
     }
 
     qDebug(">> Initializing DeviceManager");
@@ -50,19 +72,6 @@ int main(int argc, char *argv[])
 //        DeviceManager *devManager = DeviceManager::instance();
     }
 
-    MainWindow window;
-    window.show();
-    qDebug("End");
+    qDebug("Running ...");
     return a.exec();
 }
-
-
-
-
-//    //listing SMS
-//    {
-//        QMap<QString, QString> filter;
-//        filter.insert(QString("DateSent"), QString("2013-10-15"));
-
-//        test.listSMS(filter);
-//    }

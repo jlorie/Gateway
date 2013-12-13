@@ -1,45 +1,39 @@
 #ifndef LITESTORAGE_HPP
 #define LITESTORAGE_HPP
 
-#include <IStorage.hpp>
-#include "litestorage_global.hpp"
+#include <include/IStorage.hpp>
 
+#include <QObject>
+#include <QtPlugin>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
 
-using namespace Gateway;
-
-class LiteStorage : public IStorage
+class LiteStorage : public QObject, public IStorage
 {
-public:
-    LiteStorage();
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "Gateway.IStorage")
+    Q_INTERFACES(IStorage)
 
-    bool configure(const StorageConfig &config);
+    public:
+        LiteStorage();
 
-    IAccount *newAccount(const QString &user, const QString &name);
-    bool removeAccount(const qlonglong accountId);
-    AccountList accounts() const;
+        bool configure(const StorageConfig &config);
 
-    IRule *newRule(const QString &from, const QString &to);
-    bool removeRule(const qlonglong ruleId);
-    RuleList rules() const;
+        IRule *ruleFor(const IRule *rule) const;
 
-private:
-    bool openDB(const QString &path);
-    bool createTables();
+    private:
+        bool openDB(const QString &path);
 
-    mutable QSqlQuery _query;
+        inline bool executeQuery(const QString &query) const
+        {
+            _query = _db->exec(query);
+            return (_query.lastError().type() == QSqlError::NoError);
+        }
 
-    inline bool executeQuery(const QString &query) const
-    {
-        _query = _db->exec(query);
-        return (_query.lastError().type() == QSqlError::NoError);
-    }
-
-private:
-    QSqlDatabase *_db;    
+    private:
+        QSqlDatabase *_db;
+        mutable QSqlQuery _query;
 
 };
-
 #endif // LITESTORAGE_HPP
