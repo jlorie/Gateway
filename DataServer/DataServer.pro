@@ -4,17 +4,18 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
-QT       += serialport
+QT       += core gui
+QT       += serialport network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+CONFIG += c++11
 
 TARGET = untitled
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-    webapi/TelAPISMS.cpp \
+SOURCES += main.cpp\   
     DeviceManager.cpp \
     Storage.cpp
 
@@ -22,11 +23,11 @@ HEADERS  += ui/mainwindow.h \
     include/CommonErrors.hpp \
     include/IStorage.hpp \
     include/IRule.hpp \
-    common/SMS.hpp \
-    webapi/TelAPISMS.hpp \
+    common/SMS.hpp \    
     DeviceManager.hpp \
     Storage.hpp \
     include/IDevice.hpp \
     include/IPhoneNumber.hpp \
     include/IMessage.hpp \         
-    common/Rule.hpp
+    common/Rule.hpp \
+    include/DriverInterface.hpp
