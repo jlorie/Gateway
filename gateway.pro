@@ -3,5 +3,4 @@ CONFIG  += ordered
 
 SUBDIRS += DataServer \           
            LiteStorage \
-           GSMDriver
-
+           drivers
