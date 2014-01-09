@@ -3,13 +3,13 @@
 
 #include "IPhoneNumber.hpp"
 
-#include <QtPlugin>
 #include <QList>
 #include <QMap>
 #include <QString>
+#include <QObject>
 
-typedef QMap<QString, QString> DeviceInfo;
 typedef QList<IPhoneNumber *> NumberList;
+typedef QMap<QString, QString> DeviceInfo;
 
 enum DeviceClass
 {
@@ -17,16 +17,19 @@ enum DeviceClass
     devWeb
 };
 
-class IDevice
+class IDevice : public QObject
 {
+    Q_OBJECT
     public:
-        virtual ulong initialize(const DeviceInfo &info) = 0;
+        virtual ~IDevice() {}
+
         virtual qlonglong deviceId() = 0;
 
         virtual NumberList phoneNumbers() const = 0;
         virtual DeviceClass type() const = 0;
+
+    signals:
+        void printed();
 };
 
-
-Q_DECLARE_INTERFACE(IDevice, "Gateway.IDevice")
 #endif // IDEVICE_HPP

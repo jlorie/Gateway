@@ -22,7 +22,6 @@ namespace Gateway
             _date = date;
             _body = body;
             _status = status;
-
         }
 
         void setFrom(const QString &from)

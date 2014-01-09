@@ -3,14 +3,14 @@
 
 #include <include/IDevice.hpp>
 #include <include/IMessage.hpp>
-#include <webapi/TelAPISMS.hpp>
+#include <include/DriverInterface.hpp>
 
 #include <QObject>
 #include <QLibrary>
 
 namespace Gateway
 {
-    typedef QList<QObject *> LibraryList;
+    typedef QList<DriverInterface *> LibraryList;
     typedef QList<IDevice *> DeviceList;
 
     class DeviceManager : public QObject
@@ -31,10 +31,14 @@ namespace Gateway
     public slots:
         void redirectSMS(const IMessage *message);
 
+    protected slots:
+        void messageSentNotification(const IMessage *message);
+
     private:
         DeviceManager(QObject *parent = 0);
         ~DeviceManager();
 
+        void loadDrivers(const QString &drivers_path);
         void browseSerialDevices();
     private:
         static DeviceManager *_instance;
@@ -42,8 +46,6 @@ namespace Gateway
         DeviceList _devices;
         NumberList _numbers;
         LibraryList _driverLibraries;
-
-        TelAPI *_webapi;
     };
 }
 #endif // DEVICEMANAGER_HPP

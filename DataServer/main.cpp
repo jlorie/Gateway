@@ -25,15 +25,10 @@ void setProxy()
 
 #include <QFile>
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-#define qInstallMessageHandler qInstallMsgHandler
-void MsgOuput(QtMsgType type, const char *msg)
+void MsgOuput(QtMsgType type, const QMessageLogContext &context, const QString& qmsg)
 {
-#else
-void MsgOuput(QtMsgType type, const QMessageLogContext &, const QString& qmsg)
-{
+    Q_UNUSED(context);
     const char* msg = qPrintable(qmsg);
-#endif
 
     switch (type)
     {
@@ -42,6 +37,7 @@ void MsgOuput(QtMsgType type, const QMessageLogContext &, const QString& qmsg)
             break;
         case QtWarningMsg:
             std::cerr << "(WW) " << msg << std::endl;
+//            std::cerr << "(WW)    >> " << context.file << " line " << context.line << " on " << context.function << std::endl;
             break;
         case QtCriticalMsg:
             std::cerr << "(EE) " << msg << std::endl;
@@ -67,9 +63,34 @@ int main(int argc, char *argv[])
     }
 
     qDebug(">> Initializing DeviceManager");
-    {
+    {        
         DeviceManager::initialize();
-//        DeviceManager *devManager = DeviceManager::instance();
+        DeviceManager *devManager = DeviceManager::instance();
+
+        //Creating Serial Device
+        {
+            DeviceInfo info;
+            {
+                info.insert(QString("driver_name"), QString("GenericGSMDriver"));
+                info.insert(QString("device_name"), QString("Samsung GT"));
+                info.insert(QString("serial_port"), QString("ttyACM0"));
+            }
+
+            devManager->createDevice(info);
+        }
+
+        //Creating Web Device
+        {
+            DeviceInfo info;
+            {
+                info.insert(QString("driver_name"), QString("TelAPIWebDriver"));
+                info.insert(QString("device_name"), QString("TelAPI"));
+                info.insert(QString("device_user"), QString("AC5d198c28d93f4ae9912408c0bffc47c2"));
+                info.insert(QString("device_password"), QString("2260cd6a2f4f4145a3f2a73d42b3d472"));
+            }
+
+            devManager->createDevice(info);
+        }
     }
 
     qDebug("Running ...");

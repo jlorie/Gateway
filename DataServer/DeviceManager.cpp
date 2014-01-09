@@ -2,7 +2,7 @@
 
 #include <QDebug>
 #include <QThread>
-#include <QFile>
+#include <QDir>
 #include <QPluginLoader>
 
 #include <QSerialPort>
@@ -12,8 +12,9 @@
 #include <include/IDevice.hpp>
 #include <Storage.hpp>
 #include <common/Rule.hpp>
+#include <common/SMS.hpp>
 
-const QString gsm_driver_library("/home/lorie/workspace/My Projects/_qt-builds/build-gateway-Desktop-Debug/libs/libGSMDriver.so");
+const QString drivers_path("/home/lorie/workspace/My Projects/_qt-builds/build-gateway-Desktop-Debug/libs");
 
 namespace Gateway
 {
@@ -46,36 +47,61 @@ namespace Gateway
 
         IDevice *device = 0;
         {
-            foreach (QObject *driver, _driverLibraries)
+            bool found(false);
+
+            QString driverName = info.value(QString("driver_name"), QString("GSMDriver"));
+            foreach (DriverInterface *driver, _driverLibraries)
             {
-                device = qobject_cast<IDevice *>(driver);
-                if (device)
+                if (driver->driverName() == driverName)
+                {
+                    device = driver->newDevice(info);
+                    found = true;
                     break;
+                }
             }        
-            if (!device)
+
+            if (device)
             {
-                qWarning("Could not find driver for device %s", qPrintable(info.value("device_name")));
-            }
-            else
-            if (device->initialize(info) == Error::OK)
-            {
-                qWarning() << "Device " <<  info.value(QString("device_name"), QString("Unknown")) << "initialized ...";
+                qDebug("Device %s initialized ...", qPrintable(info.value(QString("device_name"), QString("Unknown"))));
 
                 _devices.append(device);
-                _numbers.append(device->phoneNumbers());
+                foreach (IPhoneNumber *phoneNumber, device->phoneNumbers())
+                {
+                    qDebug("New phone number (%s) has been registered", qPrintable(phoneNumber->number()));
+                    _numbers.append(phoneNumber);
+                }
+
 
                 qRegisterMetaType<IMessage *>("IMessage *");
                 foreach (IPhoneNumber *phoneNumber, device->phoneNumbers())
                 {
                     connect(phoneNumber, SIGNAL(newMessageReceived(const IMessage*)), this, SLOT(redirectSMS(const IMessage *)));
+                    connect(phoneNumber, SIGNAL(messageSent(const IMessage*)), this, SLOT(messageSentNotification(const IMessage*)));
                 }
 
-    //            QThread *thread = new QThread;
-    //            device->moveToThread(thread);
-    //            thread->start();
+                QThread *thread = new QThread;
+                device->moveToThread(thread);
+                thread->start();
+
+
+//                IPhoneNumber *number = device->phoneNumbers().first();
+//                SMS *message = new SMS();
+//                {
+//                    message->setTo(QString("+13852157548"));
+//                    message->setBody("Hello world");
+//                }
+
+//                number->sendMessage((IMessage *)message);
+            }
+            else
+            if (!found)
+            {
+                qWarning("Cannot find driver for device: %s", qPrintable(info.value("device_name")));
+                result = Error::errDeviceNotFound;
             }
             else
             {
+                qWarning("Cannot create instance for device: %s", qPrintable(info.value("device_name")));
                 result = Error::errDeviceNotInitialized;
             }
         }
@@ -121,26 +147,37 @@ namespace Gateway
     {        
         if (message)
         {
-            qDebug(">> Incomming message ...");
-            qDebug("    from: %s", qPrintable(message->from()));
-            qDebug("    to: %s", qPrintable(message->to()));
-            qDebug("    body: %s", qPrintable(message->body()));
-            // Contacts
-//            QString twilioNumber("+13852157548");
-//            QString osmarNumber("+17862180956");
-//            QString telapiNumber("+15305765603");
+            qDebug("Incomming message ...");
+            qDebug(">>    from: %s", qPrintable(message->from()));
+            qDebug(">>    to: %s", qPrintable(message->to()));
+            qDebug(">>    body: %s", qPrintable(message->body()));
 
-    //        QString to(ruleFor(message->from()));
             Storage *storage = Storage::instance();
             IRule *redirectRule (storage->ruleFor(new Rule(message->from(), message->to())));
             if (redirectRule)
             {
-                qDebug(">> Redirecting message ...");
-                qDebug("    from: %s", qPrintable(redirectRule->from()));
-                qDebug("    to: %s", qPrintable(redirectRule->to()));
-                qDebug("    body: %s", qPrintable(message->body()));
+                qDebug(">> Redirecting message to: %s", qPrintable(redirectRule->from()));
 
-                _webapi->sendSMS(redirectRule->from(), redirectRule->to(), message->body());
+                //Find from number
+                {
+                    IPhoneNumber *fromNumber = 0;
+                    foreach (IPhoneNumber *number, _numbers)
+                    {
+                        if (number->number() == redirectRule->from())
+                            fromNumber = number;
+                    }
+
+                    if (fromNumber)
+                    {
+                        SMS *forwardMessage = new SMS();
+                        {
+                            forwardMessage->setTo(redirectRule->to());
+                            forwardMessage->setBody(message->body());
+                        }
+
+                        fromNumber->sendMessage((IMessage *)forwardMessage);
+                    }
+                }
             }
             else
             {
@@ -156,46 +193,56 @@ namespace Gateway
     DeviceManager::DeviceManager(QObject *parent) :
         QObject(parent)
     {
-        // Loading gsm drivers
-        {
-            // TODO reconocer las bibliotecas dentro de un directorio
-            QString fileName(gsm_driver_library);
-
-            if (QFile::exists(fileName))
-            {
-                QPluginLoader loader(fileName);
-                QObject *library = loader.instance();
-                if (library)
-                {
-                    qDebug("Plugin found: %s", qPrintable(fileName));
-                    _driverLibraries.append(library);
-                }
-                else
-                {
-                    qWarning("Could not open library: %s", qPrintable(fileName));
-                }
-            }
-            else
-            {
-                qWarning("Could not find library %s", qPrintable(fileName));
-            }
-        }
-
-        browseSerialDevices();
+        loadDrivers(drivers_path);
+//        browseSerialDevices();
         //-------------------------------------------------------
 
-        QString username("AC5d198c28d93f4ae9912408c0bffc47c2");
-        QString password("2260cd6a2f4f4145a3f2a73d42b3d472");
+//        QString username("AC5d198c28d93f4ae9912408c0bffc47c2");
+//        QString password("2260cd6a2f4f4145a3f2a73d42b3d472");
 
-        _webapi = new TelAPI(username, password, this);
+//        _webapi = new TelAPI(username, password, this);
     }
 
     DeviceManager::~DeviceManager()
     {
-        foreach (QObject *library, _driverLibraries)
+        foreach (DriverInterface *driver, _driverLibraries)
         {
-            delete library;
+            delete driver;
         }
+    }
+
+    void DeviceManager::loadDrivers(const QString &drivers_path)
+    {
+        QDir driversDir(drivers_path);
+        foreach (QString fileName, driversDir.entryList(QDir::Files))
+        {
+            QString canonicalPath = driversDir.canonicalPath() + QDir::separator() + fileName;
+
+            QPluginLoader loader(canonicalPath);
+            QObject *library = loader.instance();
+            if (library)
+            {
+                DriverInterface *driver = qobject_cast<DriverInterface *>(library);
+                if (driver)
+                {
+                    qDebug("Registering driver: %s", qPrintable(driver->driverName()));
+                    qDebug(">>    %s", qPrintable(driver->description()));
+
+                    _driverLibraries.append(driver);
+                }
+            }
+            else
+            {
+                QString error = loader.errorString();
+                error = error.mid(error.lastIndexOf(".so:") + 4);
+                qWarning("Cannot load driverLibrary %s: %s", qPrintable(fileName), qPrintable(error.toLatin1()));
+            }
+        }
+    }
+
+    void DeviceManager::messageSentNotification(const IMessage *message)
+    {
+        qDebug("Message sent to %s", qPrintable(message->to()));
     }
 
     #include <QSerialPort>
