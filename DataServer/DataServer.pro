@@ -17,7 +17,8 @@ TEMPLATE = app
 
 SOURCES += main.cpp\   
     DeviceManager.cpp \
-    Storage.cpp
+    Storage.cpp \
+    DriverManager.cpp
 
 HEADERS  += ui/mainwindow.h \
     include/CommonErrors.hpp \
@@ -30,4 +31,5 @@ HEADERS  += ui/mainwindow.h \
     include/IPhoneNumber.hpp \
     include/IMessage.hpp \         
     common/Rule.hpp \
-    include/DriverInterface.hpp
+    include/DriverInterface.hpp \
+    DriverManager.hpp

@@ -14,7 +14,7 @@ namespace Gateway
         SMS()
         {}
 
-        SMS(const QString &from, const QString &to, const QDate &date,
+        SMS(const QString &from, const QString &to, const QDateTime &date,
             const QString &body, MessageStatus status)
         {
             _from = from;
@@ -44,12 +44,12 @@ namespace Gateway
             return _to;
         }
 
-        void setDate(const QDate &date)
+        void setDate(const QDateTime &date)
         {
             _date = date;
         }
 
-        QDate date() const
+        QDateTime date() const
         {
             return _date;
         }
@@ -83,7 +83,7 @@ namespace Gateway
 
         QString _from;
         QString _to;
-        QDate _date;
+        QDateTime _date;
         QString _body;
         MessageStatus _status;
     };

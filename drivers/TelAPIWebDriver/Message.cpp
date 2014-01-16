@@ -4,7 +4,7 @@ Message::Message()
 {
 }
 
-Message::Message(const QString &from, const QString &to, const QDate &date,
+Message::Message(const QString &from, const QString &to, const QDateTime &date,
     const QString &body, MessageStatus status)
 {
     _from = from;
@@ -35,12 +35,12 @@ QString Message::to() const
     return _to;
 }
 
-void Message::setDate(const QDate &date)
+void Message::setDate(const QDateTime &date)
 {
     _date = date;
 }
 
-QDate Message::date() const
+QDateTime Message::date() const
 {
     return _date;
 }

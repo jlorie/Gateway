@@ -1,4 +1,5 @@
 #include <DeviceManager.hpp>
+#include <DriverManager.hpp>
 #include <Storage.hpp>
 
 #include <common/Rule.hpp>
@@ -10,8 +11,21 @@
 
 #include <QStringList>
 #include <QRegExp>
+#include <QDateTime>
+#include <QDebug>
+
 
 using namespace Gateway;
+
+void Test()
+{
+    QString strDate = QString("Thu, 9 Jan 2014 14:19:24 +0000");
+    QDateTime date = QDateTime::fromString(strDate, QString("ddd, d MMM yyyy hh:mm:ss +0000"));
+//    QString strDate = QString("09/01/2014 14:19:24");
+//    QDateTime date = QDateTime::fromString(strDate, QString("dd/MM/yyyy hh:mm:ss"));
+
+    qDebug() <<  "--------> date: " <<  date.toString();
+}
 
 void setProxy()
 {
@@ -53,8 +67,10 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     setProxy();
 
+//Test();
+
     StorageConfig config;
-    config["storage_library"] = "/home/lorie/workspace/My Projects/_qt-builds/build-gateway-Desktop-Debug/libs/libLiteStorage.so";
+    config["storage_library"] = "/home/lorie/workspace/My Projects/_qt-builds/libs/libLiteStorage.so";
     config["local_storage_db_path"] = "/home/lorie/workspace/My Projects/_qt-builds/gateway.db";
 
     qDebug("Initializing Storage");
@@ -62,35 +78,41 @@ int main(int argc, char *argv[])
         Storage::initialize(config);
     }
 
+    qDebug(">> Initializing DriverManager");
+    {
+        DriverManager::initialize();
+    }
+
     qDebug(">> Initializing DeviceManager");
     {        
         DeviceManager::initialize();
         DeviceManager *devManager = DeviceManager::instance();
 
-        //Creating Serial Device
-        {
-            DeviceInfo info;
-            {
-                info.insert(QString("driver_name"), QString("GenericGSMDriver"));
-                info.insert(QString("device_name"), QString("Samsung GT"));
-                info.insert(QString("serial_port"), QString("ttyACM0"));
-            }
 
-            devManager->createDevice(info);
-        }
+//        //Creating Serial Device
+//        {
+//            DeviceInfo info;
+//            {
+//                info.insert(QString("driver_name"), QString("GenericGSMDriver"));
+//                info.insert(QString("device_name"), QString("Samsung GT"));
+//                info.insert(QString("serial_port"), QString("ttyACM0"));
+//            }
 
-        //Creating Web Device
-        {
-            DeviceInfo info;
-            {
-                info.insert(QString("driver_name"), QString("TelAPIWebDriver"));
-                info.insert(QString("device_name"), QString("TelAPI"));
-                info.insert(QString("device_user"), QString("AC5d198c28d93f4ae9912408c0bffc47c2"));
-                info.insert(QString("device_password"), QString("2260cd6a2f4f4145a3f2a73d42b3d472"));
-            }
+//            devManager->createDevice(info);
+//        }
 
-            devManager->createDevice(info);
-        }
+//        //Creating Web Device
+//        {
+//            DeviceInfo info;
+//            {
+//                info.insert(QString("driver_name"), QString("TelAPIWebDriver"));
+//                info.insert(QString("device_name"), QString("TelAPI"));
+//                info.insert(QString("device_user"), QString("AC5d198c28d93f4ae9912408c0bffc47c2"));
+//                info.insert(QString("device_password"), QString("2260cd6a2f4f4145a3f2a73d42b3d472"));
+//            }
+
+//            devManager->createDevice(info);
+//        }
     }
 
     qDebug("Running ...");

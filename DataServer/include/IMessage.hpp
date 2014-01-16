@@ -20,7 +20,7 @@ class IMessage: public QObject
     public:
         virtual QString from() const = 0;
         virtual QString to() const = 0;
-        virtual QDate date() const = 0;
+        virtual QDateTime date() const = 0;
 
         virtual QString body() const = 0;
         virtual MessageStatus status() const = 0;

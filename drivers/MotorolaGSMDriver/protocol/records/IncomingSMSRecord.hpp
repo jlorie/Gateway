@@ -29,7 +29,7 @@ public:
         QStringList values = data.split(QRegExp("[,\\n]"));
 
         _destinationNumber = Util::trim(values.at(0));
-        _date = QDate::fromString(values.at(1) + values.at(2), QString("DD/MM/YY,HH:MM:SS"));
+        _date = QDateTime::fromString(values.at(1) + values.at(2), QString("DD/MM/YY,HH:MM:SS"));
 
        for (int i = 3; i < values.size(); ++i)
        {
@@ -46,7 +46,7 @@ public:
         return _destinationNumber;
     }
 
-    QDate date() const
+    QDateTime date() const
     {
         return _date;
     }
@@ -59,7 +59,7 @@ public:
 private:
 
     QString _destinationNumber;
-    QDate _date;
+    QDateTime _date;
     QString _message;
 };
 

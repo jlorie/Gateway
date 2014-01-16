@@ -1,12 +1,13 @@
 #include "DeviceManager.hpp"
+#include "DriverManager.hpp"
 
 #include <QDebug>
 #include <QThread>
-#include <QDir>
-#include <QPluginLoader>
 
 #include <QSerialPort>
 #include <QSerialPortInfo>
+
+#include <QDebug>
 
 #include <include/CommonErrors.hpp>
 #include <include/IDevice.hpp>
@@ -14,7 +15,6 @@
 #include <common/Rule.hpp>
 #include <common/SMS.hpp>
 
-const QString drivers_path("/home/lorie/workspace/My Projects/_qt-builds/build-gateway-Desktop-Debug/libs");
 
 namespace Gateway
 {
@@ -49,16 +49,9 @@ namespace Gateway
         {
             bool found(false);
 
-            QString driverName = info.value(QString("driver_name"), QString("GSMDriver"));
-            foreach (DriverInterface *driver, _driverLibraries)
-            {
-                if (driver->driverName() == driverName)
-                {
-                    device = driver->newDevice(info);
-                    found = true;
-                    break;
-                }
-            }        
+            QString driverName = info.value(QString("driver_name"), QString("GenericGSMDriver"));
+            DriverInterface *driver = DriverManager::instance()->driverFor(driverName);
+            device = driver->newDevice(info);
 
             if (device)
             {
@@ -193,98 +186,15 @@ namespace Gateway
     DeviceManager::DeviceManager(QObject *parent) :
         QObject(parent)
     {
-        loadDrivers(drivers_path);
-//        browseSerialDevices();
-        //-------------------------------------------------------
-
-//        QString username("AC5d198c28d93f4ae9912408c0bffc47c2");
-//        QString password("2260cd6a2f4f4145a3f2a73d42b3d472");
-
-//        _webapi = new TelAPI(username, password, this);
     }
 
     DeviceManager::~DeviceManager()
     {
-        foreach (DriverInterface *driver, _driverLibraries)
-        {
-            delete driver;
-        }
-    }
 
-    void DeviceManager::loadDrivers(const QString &drivers_path)
-    {
-        QDir driversDir(drivers_path);
-        foreach (QString fileName, driversDir.entryList(QDir::Files))
-        {
-            QString canonicalPath = driversDir.canonicalPath() + QDir::separator() + fileName;
-
-            QPluginLoader loader(canonicalPath);
-            QObject *library = loader.instance();
-            if (library)
-            {
-                DriverInterface *driver = qobject_cast<DriverInterface *>(library);
-                if (driver)
-                {
-                    qDebug("Registering driver: %s", qPrintable(driver->driverName()));
-                    qDebug(">>    %s", qPrintable(driver->description()));
-
-                    _driverLibraries.append(driver);
-                }
-            }
-            else
-            {
-                QString error = loader.errorString();
-                error = error.mid(error.lastIndexOf(".so:") + 4);
-                qWarning("Cannot load driverLibrary %s: %s", qPrintable(fileName), qPrintable(error.toLatin1()));
-            }
-        }
     }
 
     void DeviceManager::messageSentNotification(const IMessage *message)
     {
         qDebug("Message sent to %s", qPrintable(message->to()));
     }
-
-    #include <QSerialPort>
-    #include <QSerialPortInfo>
-
-    void DeviceManager::browseSerialDevices()
-    {
-        qDebug(">> Browsing serial devices ...");
-
-        foreach (QSerialPortInfo portInfo, QSerialPortInfo::availablePorts())
-        {
-            DeviceInfo devInfo;
-            {
-                devInfo.insert(QString("manufacturer"), portInfo.manufacturer());
-                devInfo.insert(QString("device_type"), QString("serial"));
-                devInfo.insert(QString("serial_port"), portInfo.portName());
-                devInfo.insert(QString("device_name"), portInfo.portName());
-            }
-
-//            qDebug() << "\nPort:" << portInfo.portName();
-//            qDebug() << "Location:" << portInfo.systemLocation();
-//            qDebug() << "Description:" << portInfo.description();
-//            qDebug() << "Manufacturer:" << portInfo.manufacturer();
-//            qDebug() << "Vendor Identifier:" << (portInfo.hasVendorIdentifier() ? QByteArray::number(portInfo.vendorIdentifier(), 16) : QByteArray());
-//            qDebug() << "Product Identifier:" << (portInfo.hasProductIdentifier() ? QByteArray::number(portInfo.productIdentifier(), 16) : QByteArray());
-//            qDebug() << "Busy:" << (portInfo.isBusy() ? QObject::tr("Yes") : QObject::tr("No"));
-
-//            QSerialPort *port = new QSerialPort(portInfo);
-//            if (port->open(QIODevice::ReadWrite)) {
-//                qDebug() << "Baud rate:" << port->baudRate();
-//                qDebug() << "Data bits:" << port->dataBits();
-//                qDebug() << "Stop bits:" << port->stopBits();
-//                qDebug() << "Parity:" << port->parity();
-//                qDebug() << "Flow control:" << port->flowControl();
-//                qDebug() << "Read buffer size:" << port->readBufferSize();
-//                port->close();
-//            } else {
-//                qDebug() << "Unable to open port, error code" << port->error();
-//            }
-
-            createDevice(devInfo);
-        }
-    }
-
 }

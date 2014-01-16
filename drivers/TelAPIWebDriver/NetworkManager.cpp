@@ -139,7 +139,14 @@ QUrl NetworkManager::withFormatResponse(const QUrl &url)
         default:
             break;
     }
-    QString result(url.toString().append(format));
+
+    QString result = url.toString();
+    int pos = result.length();
+
+    if (url.hasQuery())
+        pos = result.indexOf('?');
+
+    result.insert(pos, format);
 
     return QUrl(result);
 }

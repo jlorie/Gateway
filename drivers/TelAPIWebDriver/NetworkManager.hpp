@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QUrl>
+#include <QUrlQuery>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QAuthenticator>

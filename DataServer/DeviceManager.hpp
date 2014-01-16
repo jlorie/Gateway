@@ -10,7 +10,6 @@
 
 namespace Gateway
 {
-    typedef QList<DriverInterface *> LibraryList;
     typedef QList<IDevice *> DeviceList;
 
     class DeviceManager : public QObject
@@ -26,8 +25,6 @@ namespace Gateway
 
         IDevice *deviceForId(qlonglong deviceId) const;
 
-    signals:
-
     public slots:
         void redirectSMS(const IMessage *message);
 
@@ -38,14 +35,11 @@ namespace Gateway
         DeviceManager(QObject *parent = 0);
         ~DeviceManager();
 
-        void loadDrivers(const QString &drivers_path);
-        void browseSerialDevices();
     private:
         static DeviceManager *_instance;
 
         DeviceList _devices;
         NumberList _numbers;
-        LibraryList _driverLibraries;
     };
 }
 #endif // DEVICEMANAGER_HPP

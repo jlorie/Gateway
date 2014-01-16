@@ -7,9 +7,13 @@
 #include <QMap>
 #include <QObject>
 #include <QByteArray>
+#include <QTimer>
 
 #include "NetworkManager.hpp"
+#include "Message.hpp"
+
 #include <include/IPhoneNumber.hpp>
+
 
 enum class RequestType
 {
@@ -27,18 +31,30 @@ class PhoneNumber : public IPhoneNumber
 
         QString number() const;
         void sendMessage(const IMessage *message);
-        MessageList unreadMessages() const;
+        void unreadMessages();
 
     public slots:
         void processResponse(qlonglong requestId, QByteArray response);
-        void processMessageRequest(const IMessage *message, const QByteArray &response);
+
+    protected slots:
+        void poll();
+
+    private:
+        void processSendMessageRequest(const IMessage *message, const QByteArray &response);
+        void processUnreadMessageRequest(const QByteArray &response);
 
     private:
         NetworkManager *_networkManager;
         QString _number;
+        bool _configuring;
+
+        uint _smsListPageSize;
+        IMessage *_lastMessage;
 
         QMap<qlonglong, RequestType> _pendingResponses;
         QMap<qlonglong, const IMessage *> _pendingMessageResponse;
+
+        QTimer _pollingTimer;
 };
 
 

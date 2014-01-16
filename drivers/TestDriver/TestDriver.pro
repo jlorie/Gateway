@@ -4,13 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += network
-
 TEMPLATE = lib
 CONFIG += plugin
 CONFIG += c++11
-#DEFINES += TELAPIWEBDRIVER_LIBRARY
-TARGET = $$qtLibraryTarget(TelAPIWebDriver)
+#DEFINES += TESTDRIVER_LIBRARY
+TARGET = $$qtLibraryTarget(TestDriver)
 
 DESTDIR       = ../../libs
 INSTALLS += target
@@ -19,18 +17,16 @@ INCLUDEPATH += ../../DataServer
 
 SOURCES += \
     Device.cpp \
-    PhoneNumber.cpp \
-    NetworkManager.cpp \
+    PhoneNumber.cpp
     Message.cpp
 
 HEADERS +=\
     Device.hpp \
+    ../../DataServer/include/DriverInterface.hpp \
     ../../DataServer/include/IPhoneNumber.hpp \
     ../../DataServer/include/IMessage.hpp \
     ../../DataServer/include/IDevice.hpp \
-    ../../DataServer/include/DriverInterface.hpp \
     Message.hpp \
     PhoneNumber.hpp \
-    DriverImp.hpp \
-    NetworkManager.hpp
+    DriverImp.hpp
 

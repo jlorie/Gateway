@@ -17,7 +17,6 @@ class IPhoneNumber: public QObject
 
         virtual QString number() const = 0;
         virtual void sendMessage(const IMessage *message) = 0;
-        virtual MessageList unreadMessages() const = 0;
 
     signals:
         void newMessageReceived(const IMessage *message);
