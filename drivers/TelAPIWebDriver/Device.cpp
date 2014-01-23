@@ -44,11 +44,6 @@ NumberList Device::phoneNumbers() const
     return _numbers;
 }
 
-DeviceClass Device::type() const
-{
-    return devWeb;
-}
-
 bool Device::queryPhoneNumbers()
 {
     QUrl query(_networkManager->baseRequestUrl().toString().append(QString("/IncomingPhoneNumbers")));

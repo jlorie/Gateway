@@ -10,13 +10,13 @@ SerialPhysicalLayer::SerialPhysicalLayer(const QString serialPort, QObject *pare
     :QObject(parent)
 {
     _port = new QSerialPort(serialPort);
-    {
-        _port->setBaudRate(QSerialPort::Baud115200);
-        _port->setDataBits(QSerialPort::Data8);
-        _port->setParity(QSerialPort::NoParity);
-        _port->setStopBits(QSerialPort::OneStop);
-        _port->setFlowControl(QSerialPort::NoFlowControl);
-    }
+//    {
+//        _port->setBaudRate(QSerialPort::Baud115200);
+//        _port->setDataBits(QSerialPort::Data8);
+//        _port->setParity(QSerialPort::NoParity);
+//        _port->setStopBits(QSerialPort::OneStop);
+//        _port->setFlowControl(QSerialPort::NoFlowControl);
+//    }
 
     _waitingResponse = false;
 
@@ -45,15 +45,24 @@ bool SerialPhysicalLayer::disconnect()
     return true;
 }
 
-
 bool SerialPhysicalLayer::connect(ulong timeOut)
 {
     Q_UNUSED(timeOut);
-
     bool result(true);
 
     if (!isConnected())
+    {
         result = _port->open(QIODevice::ReadWrite);
+
+        if (result)
+        {
+            _port->setBaudRate(QSerialPort::Baud115200);
+            _port->setDataBits(QSerialPort::Data8);
+            _port->setParity(QSerialPort::NoParity);
+            _port->setStopBits(QSerialPort::OneStop);
+            _port->setFlowControl(QSerialPort::NoFlowControl);
+        }
+    }
 
     return result;
 }
@@ -70,14 +79,6 @@ bool SerialPhysicalLayer::send(const QString &data)
         _writeBuffer.append(data);
 
         _port->write(_writeBuffer);
-        if (!error())
-        {
-            QEventLoop loop;
-            {
-                QObject::connect(_port, SIGNAL(bytesWritten(qint64)), &loop, SLOT(quit()));
-                loop.exec();
-            }
-        }
     }
 
     return !(bool)error();

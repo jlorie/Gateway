@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
-QT       += serialport network
+QT       += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -18,7 +18,8 @@ TEMPLATE = app
 SOURCES += main.cpp\   
     DeviceManager.cpp \
     Storage.cpp \
-    DriverManager.cpp
+    DriverManager.cpp \
+    SystemConfig.cpp
 
 HEADERS  += ui/mainwindow.h \
     include/CommonErrors.hpp \
@@ -32,4 +33,6 @@ HEADERS  += ui/mainwindow.h \
     include/IMessage.hpp \         
     common/Rule.hpp \
     include/DriverInterface.hpp \
-    DriverManager.hpp
+    DriverManager.hpp \
+    SystemConfig.hpp \
+    include/DeviceInfo.hpp

@@ -2,6 +2,7 @@
 #define DEVICE_HPP
 
 #include <include/IDevice.hpp>
+#include <include/DeviceInfo.hpp>
 
 class Device : public IDevice
 {
@@ -12,7 +13,6 @@ class Device : public IDevice
 
         qlonglong deviceId();
         NumberList phoneNumbers() const;
-        DeviceClass type() const;
 };
 
 #endif // DEVICE_HPP

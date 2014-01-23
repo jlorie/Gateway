@@ -21,6 +21,7 @@ bool Device::initialize()
     bool result (false);
 
     result = _physical->connect(TimeOut);
+
     if (result)
     {
         // testing if device accepts AT commands
@@ -86,17 +87,10 @@ NumberList Device::phoneNumbers() const
     return _numbers;
 }
 
-DeviceClass Device::type() const
-{
-    return devGSM;
-}
-
-
 void Device::messageReceived(const QString &frame)
 {
     PhoneNumber *number = (PhoneNumber *)_numbers.first();
 
-    qDebug("Message Received");
     AbstractRecord *newRecord = _message.disassemble(frame);
 
     QString receiveNumber("04120884437");

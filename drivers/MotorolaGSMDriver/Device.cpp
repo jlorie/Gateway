@@ -88,12 +88,6 @@ NumberList Device::phoneNumbers() const
     return _numbers;
 }
 
-DeviceClass Device::type() const
-{
-    return devGSM;
-}
-
-
 void Device::messageReceived(const QString &frame)
 {
     PhoneNumber *number = (PhoneNumber *)_numbers.first();

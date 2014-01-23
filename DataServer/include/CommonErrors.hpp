@@ -9,6 +9,7 @@ namespace Error
 
     const ulong errDeviceNotFound = 101;
     const ulong errDeviceNotInitialized = 101;
+    const ulong errDriverNotFound= 102;
 }
 
 #endif // COMMONERRORS_HPP

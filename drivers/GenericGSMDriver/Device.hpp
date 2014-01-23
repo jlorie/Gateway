@@ -2,6 +2,7 @@
 #define DEVICE_HPP
 
 #include <include/IDevice.hpp>
+#include <include/DeviceInfo.hpp>
 #include <physical/SerialPhysicalLayer.hpp>
 #include <protocol/ATMessage.hpp>
 
@@ -15,8 +16,6 @@ class Device : public IDevice
         qlonglong deviceId();
 
         NumberList phoneNumbers() const;
-
-        DeviceClass type() const;
 
     public slots:
         void messageReceived(const QString &frame);

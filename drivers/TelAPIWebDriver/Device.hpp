@@ -5,6 +5,7 @@
 #include <QJsonObject>
 
 #include <include/IDevice.hpp>
+#include <include/DeviceInfo.hpp>
 #include "NetworkManager.hpp"
 
 class Device : public IDevice
@@ -16,8 +17,6 @@ class Device : public IDevice
         qlonglong deviceId();
 
         NumberList phoneNumbers() const;
-
-        DeviceClass type() const;
 
     private:
         bool queryPhoneNumbers();

@@ -3,4 +3,5 @@ CONFIG  += ordered
 
 SUBDIRS += DataServer \           
            LiteStorage \
-           drivers
+           drivers \
+           DeviceBrowser

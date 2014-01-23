@@ -20,8 +20,3 @@ NumberList Device::phoneNumbers() const
 {
     return NumberList();
 }
-
-DeviceClass Device::type() const
-{
-    return devWeb;
-}

@@ -6,7 +6,7 @@
 namespace Gateway
 {
 
-    const QString drivers_path("/home/lorie/workspace/My Projects/_qt-builds/libs/");
+    const QString drivers_path("/home/lorie/workspace/Projects/_qt-builds/libs/");
 
     DriverManager * DriverManager::_instance = 0;
 

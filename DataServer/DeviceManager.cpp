@@ -4,9 +4,6 @@
 #include <QDebug>
 #include <QThread>
 
-#include <QSerialPort>
-#include <QSerialPortInfo>
-
 #include <QDebug>
 
 #include <include/CommonErrors.hpp>
@@ -51,11 +48,20 @@ namespace Gateway
 
             QString driverName = info.value(QString("driver_name"), QString("GenericGSMDriver"));
             DriverInterface *driver = DriverManager::instance()->driverFor(driverName);
+
+            if (!driver)
+            {
+                qWarning("Could not find driver %s", qPrintable(driverName));
+                return Error::errDriverNotFound;
+            }
+
             device = driver->newDevice(info);
+
+qDebug("---> Device created");
 
             if (device)
             {
-                qDebug("Device %s initialized ...", qPrintable(info.value(QString("device_name"), QString("Unknown"))));
+                qDebug("Device %s initialized ...", qPrintable(info.value(QString("device_id"), QString("Unknown"))));
 
                 _devices.append(device);
                 foreach (IPhoneNumber *phoneNumber, device->phoneNumbers())

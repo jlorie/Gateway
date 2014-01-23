@@ -1,6 +1,7 @@
 #include <DeviceManager.hpp>
 #include <DriverManager.hpp>
 #include <Storage.hpp>
+#include <SystemConfig.hpp>
 
 #include <common/Rule.hpp>
 
@@ -13,6 +14,7 @@
 #include <QRegExp>
 #include <QDateTime>
 #include <QDebug>
+#include <QSettings>
 
 
 using namespace Gateway;
@@ -73,10 +75,13 @@ int main(int argc, char *argv[])
     config["storage_library"] = "/home/lorie/workspace/My Projects/_qt-builds/libs/libLiteStorage.so";
     config["local_storage_db_path"] = "/home/lorie/workspace/My Projects/_qt-builds/gateway.db";
 
-    qDebug("Initializing Storage");
-    {
-        Storage::initialize(config);
-    }
+
+    SystemConfig *systemConfig = new SystemConfig;
+
+//    qDebug("Initializing Storage");
+//    {
+//        Storage::initialize(config);
+//    }
 
     qDebug(">> Initializing DriverManager");
     {
@@ -84,22 +89,18 @@ int main(int argc, char *argv[])
     }
 
     qDebug(">> Initializing DeviceManager");
-    {        
+    {
         DeviceManager::initialize();
         DeviceManager *devManager = DeviceManager::instance();
 
 
-//        //Creating Serial Device
-//        {
-//            DeviceInfo info;
-//            {
-//                info.insert(QString("driver_name"), QString("GenericGSMDriver"));
-//                info.insert(QString("device_name"), QString("Samsung GT"));
-//                info.insert(QString("serial_port"), QString("ttyACM0"));
-//            }
-
-//            devManager->createDevice(info);
-//        }
+        //Creating Serial Devices
+        {
+            foreach (DeviceInfo devInfo, systemConfig->devicesInfo())
+            {
+                devManager->createDevice(devInfo);
+            }
+        }
 
 //        //Creating Web Device
 //        {
