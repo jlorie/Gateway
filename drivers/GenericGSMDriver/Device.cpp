@@ -7,6 +7,8 @@
 #include <protocol/records/IncomingSMSRecord.hpp>
 
 const ulong TimeOut = 3000;
+const QString countryCode("+58");
+
 
 Device::Device(const DeviceInfo &info)
 {
@@ -68,7 +70,7 @@ bool Device::initialize()
 
     if (result)
     {
-        _numbers.append(new PhoneNumber());
+        _numbers.append(new PhoneNumber(_physical));
     }
 
     return result;
@@ -89,26 +91,37 @@ NumberList Device::phoneNumbers() const
 
 void Device::messageReceived(const QString &frame)
 {
+    qDebug("Incomming frame: %s", qPrintable(frame));
+
     PhoneNumber *number = (PhoneNumber *)_numbers.first();
-
     AbstractRecord *newRecord = _message.disassemble(frame);
-
-    QString receiveNumber("04120884437");
 
     if (!newRecord)
         return;
 
     if (newRecord->type() == recInconmingMessage)
     {
-//        qDebug("Incomming SMS: %s", qPrintable(frame));
         IncomingSMSRecord *incomingSMS = (IncomingSMSRecord *)newRecord;
-        Message *newSMS = new Message(incomingSMS->from(),
-                                      receiveNumber,
+        Message *newSMS = new Message(normalizeNumber(incomingSMS->from()),
+                                      normalizeNumber(number->number()),
                                       incomingSMS->date(),
                                       incomingSMS->body(),
                                       MessageStatus::Idle);
 
         emit number->newMessageReceived((IMessage *)newSMS);
     }
+}
+
+QString Device::normalizeNumber(const QString &number)
+{
+    QString result(number);
+
+    if (number.startsWith("0"))
+        result = countryCode + number.mid(1);
+    else
+    if (!number.startsWith("+"))
+        result.prepend(countryCode);
+
+    return result;
 }
 

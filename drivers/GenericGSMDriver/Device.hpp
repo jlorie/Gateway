@@ -20,6 +20,10 @@ class Device : public IDevice
     public slots:
         void messageReceived(const QString &frame);
 
+
+    private:
+        QString normalizeNumber(const QString &number);
+
     private:
         NumberList _numbers;
         QString _serialPort;

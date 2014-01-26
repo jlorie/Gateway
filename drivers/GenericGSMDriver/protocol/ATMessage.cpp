@@ -8,6 +8,7 @@
 const char CR = 0x0D;
 const char LF = 0x0A;
 const char BS = 0x08;
+const char CZ = 0x1A;
 
 ATMessage::ATMessage()
 {
@@ -33,6 +34,10 @@ QString ATMessage::assemble(ATCommand command, const CommandArgs &args)
         {
             //FIXME arreglar y ponerle los nombres a los parametros
             result = setMessageIndicationCommand(args["mode"]);
+            break;
+        }
+        case cmCMGS:
+        {
             break;
         }
         default:
@@ -76,4 +81,11 @@ QString ATMessage::setTextModeCommand(const QString &mode)
 QString ATMessage::setMessageIndicationCommand(const QString &mode)
 {
     return QString("AT+CNMI=%1").arg(mode).append(CR);
+}
+
+QString ATMessage::sendMessage (const QString &number)
+{
+    QString a (QString("AT+CMGS=%1").arg(number).append(CR));
+    qDebug ("cmd: %s", qPrintable(a));
+    return a;
 }

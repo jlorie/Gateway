@@ -147,9 +147,9 @@ QString SerialPhysicalLayer::errorString() const
 
 void SerialPhysicalLayer::receive()
 {
-    _readBuffer = _port->readAll();
+    _readBuffer = _port->readAll();    
 
-    if (_readBuffer.startsWith(_writeBuffer))
+    if (_readBuffer.contains(_writeBuffer))
         return;
 
     if (_waitLoop.isRunning())

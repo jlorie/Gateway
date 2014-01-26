@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += serialport
+QT       += serialport core
 
 TEMPLATE = lib
 CONFIG += plugin
