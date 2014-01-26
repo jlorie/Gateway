@@ -6,23 +6,30 @@
 #include <QObject>
 #include <QSettings>
 
-typedef QList<DeviceInfo> DeviceInfoList;
-
-class SystemConfig : public QObject
+namespace Gateway
 {
-    Q_OBJECT
-public:
-    explicit SystemConfig(QObject *parent = 0);
+    typedef QList<DeviceInfo> DeviceInfoList;
 
-    DeviceInfoList devicesInfo();
+    class SystemConfig : public QObject
+    {
+        Q_OBJECT
+    public:
+        static bool initialize();
+        static SystemConfig *instance();
+        static void destroyInstance();
 
-private:
-    void loadSettings();
+        DeviceInfoList devicesInfo();
+        QVariant value(const QString & key, const QVariant & defaultValue = QVariant()) const;
 
-private:
-    DeviceInfoList _devicesInfo;
-    QSettings *_settings;
+    private:
+        SystemConfig();
+        void loadSettings();
 
-};
+    private:
+        static SystemConfig *_instance;
 
+        DeviceInfoList _devicesInfo;
+        QSettings *_settings;
+    };
+}
 #endif // SYSTEMCONFIG_HPP
