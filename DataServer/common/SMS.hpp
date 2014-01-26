@@ -14,12 +14,10 @@ namespace Gateway
         SMS()
         {}
 
-        SMS(const QString &from, const QString &to, const QDateTime &date,
-            const QString &body, MessageStatus status)
+        SMS(const QString &from, const QString &to, const QString &body, MessageStatus status)
         {
             _from = from;
             _to = to;
-            _date = date;
             _body = body;
             _status = status;
         }

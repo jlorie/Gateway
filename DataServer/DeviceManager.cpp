@@ -6,10 +6,9 @@
 
 #include <QDebug>
 
+#include <SystemConfig.hpp>
 #include <include/CommonErrors.hpp>
 #include <include/IDevice.hpp>
-#include <Storage.hpp>
-#include <common/Rule.hpp>
 #include <common/SMS.hpp>
 
 
@@ -20,7 +19,11 @@ namespace Gateway
     void DeviceManager::initialize()
     {
         if (!_instance)
+        {
+            qDebug(">> Initializing DeviceManager ...");
             _instance = new DeviceManager;
+            qDebug(">> DeviceManager initialized !!!");
+        }
     }
 
     DeviceManager *DeviceManager::instance()
@@ -44,9 +47,8 @@ namespace Gateway
 
         IDevice *device = 0;
         {
-            bool found(false);
-
             QString driverName = info.value(QString("driver_name"), QString("GenericGSMDriver"));
+
             DriverInterface *driver = DriverManager::instance()->driverFor(driverName);
 
             if (!driver)
@@ -57,8 +59,6 @@ namespace Gateway
 
             device = driver->newDevice(info);
 
-qDebug("---> Device created");
-
             if (device)
             {
                 qDebug("Device %s initialized ...", qPrintable(info.value(QString("device_id"), QString("Unknown"))));
@@ -68,39 +68,19 @@ qDebug("---> Device created");
                 {
                     qDebug("New phone number (%s) has been registered", qPrintable(phoneNumber->number()));
                     _numbers.append(phoneNumber);
-                }
 
-
-                qRegisterMetaType<IMessage *>("IMessage *");
-                foreach (IPhoneNumber *phoneNumber, device->phoneNumbers())
-                {
-                    connect(phoneNumber, SIGNAL(newMessageReceived(const IMessage*)), this, SLOT(redirectSMS(const IMessage *)));
-                    connect(phoneNumber, SIGNAL(messageSent(const IMessage*)), this, SLOT(messageSentNotification(const IMessage*)));
+                    //re-emitting signal
+                    connect(phoneNumber, SIGNAL(newMessageReceived(const IMessage*)),
+                            this, SIGNAL(newMessageReceived(const IMessage*)));
                 }
 
                 QThread *thread = new QThread;
                 device->moveToThread(thread);
                 thread->start();
-
-
-//                IPhoneNumber *number = device->phoneNumbers().first();
-//                SMS *message = new SMS();
-//                {
-//                    message->setTo(QString("+13852157548"));
-//                    message->setBody("Hello world");
-//                }
-
-//                number->sendMessage((IMessage *)message);
-            }
-            else
-            if (!found)
-            {
-                qWarning("Cannot find driver for device: %s", qPrintable(info.value("device_name")));
-                result = Error::errDeviceNotFound;
             }
             else
             {
-                qWarning("Cannot create instance for device: %s", qPrintable(info.value("device_name")));
+                qWarning("Cannot create instance for device: %s", qPrintable(info.value("device_id")));
                 result = Error::errDeviceNotInitialized;
             }
         }
@@ -142,65 +122,38 @@ qDebug("---> Device created");
         return result;
     }
 
-    void DeviceManager::redirectSMS(const IMessage* message)
-    {        
-        if (message)
+    IPhoneNumber *DeviceManager::phoneForNumber(const QString &number) const
+    {
+        IPhoneNumber *result = 0;
+        foreach (IPhoneNumber *phoneNumber, _numbers)
         {
-            qDebug("Incomming message ...");
-            qDebug(">>    from: %s", qPrintable(message->from()));
-            qDebug(">>    to: %s", qPrintable(message->to()));
-            qDebug(">>    body: %s", qPrintable(message->body()));
-
-            Storage *storage = Storage::instance();
-            IRule *redirectRule (storage->ruleFor(new Rule(message->from(), message->to())));
-            if (redirectRule)
+            if (phoneNumber->number() == number)
             {
-                qDebug(">> Redirecting message to: %s", qPrintable(redirectRule->from()));
-
-                //Find from number
-                {
-                    IPhoneNumber *fromNumber = 0;
-                    foreach (IPhoneNumber *number, _numbers)
-                    {
-                        if (number->number() == redirectRule->from())
-                            fromNumber = number;
-                    }
-
-                    if (fromNumber)
-                    {
-                        SMS *forwardMessage = new SMS();
-                        {
-                            forwardMessage->setTo(redirectRule->to());
-                            forwardMessage->setBody(message->body());
-                        }
-
-                        fromNumber->sendMessage((IMessage *)forwardMessage);
-                    }
-                }
-            }
-            else
-            {
-                qWarning("No rule found for previous message");
+                result = phoneNumber;
+                break;
             }
         }
-        else
-        {
-            qWarning("No message found");
-        }
+
+        return result;
     }
 
-    DeviceManager::DeviceManager(QObject *parent) :
-        QObject(parent)
+    DeviceManager::DeviceManager()
     {
+        SystemConfig *config = SystemConfig::instance();
+
+        //Creating Serial Devices
+        foreach (DeviceInfo devInfo, config->devicesInfo())
+        {
+            if (devInfo.isEnabled())
+            {
+                qDebug(">> Creating device %s", qPrintable(devInfo.value("device_id")));
+                createDevice(devInfo);
+            }
+        }
     }
 
     DeviceManager::~DeviceManager()
     {
 
-    }
-
-    void DeviceManager::messageSentNotification(const IMessage *message)
-    {
-        qDebug("Message sent to %s", qPrintable(message->to()));
     }
 }

@@ -4,6 +4,8 @@
 #
 #-------------------------------------------------
 
+include(qamqp/qamqp.pri)
+
 QT       += core gui
 QT       += network
 
@@ -17,22 +19,24 @@ TEMPLATE = app
 
 SOURCES += main.cpp\   
     DeviceManager.cpp \
-    Storage.cpp \
     DriverManager.cpp \
-    SystemConfig.cpp
+    SystemConfig.cpp \
+    watcher/AMQPWatcher.cpp \
+    RemoteStorage.cpp \
+    SystemEngine.cpp
 
 HEADERS  += ui/mainwindow.h \
     include/CommonErrors.hpp \
-    include/IStorage.hpp \
-    include/IRule.hpp \
     common/SMS.hpp \    
     DeviceManager.hpp \
-    Storage.hpp \
     include/IDevice.hpp \
     include/IPhoneNumber.hpp \
     include/IMessage.hpp \         
-    common/Rule.hpp \
     include/DriverInterface.hpp \
     DriverManager.hpp \
     SystemConfig.hpp \
-    include/DeviceInfo.hpp
+    include/DeviceInfo.hpp \
+    RemoteStorage.hpp \
+    watcher/RemoteWatcher.hpp \
+    watcher/AMQPWatcher.hpp \
+    SystemEngine.hpp

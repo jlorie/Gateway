@@ -24,15 +24,13 @@ namespace Gateway
         ulong deleteDevice(const qlonglong deviceId);
 
         IDevice *deviceForId(qlonglong deviceId) const;
+        IPhoneNumber *phoneForNumber(const QString &number) const;
 
-    public slots:
-        void redirectSMS(const IMessage *message);
-
-    protected slots:
-        void messageSentNotification(const IMessage *message);
+    signals:
+         void newMessageReceived(const IMessage *message);
 
     private:
-        DeviceManager(QObject *parent = 0);
+        DeviceManager();
         ~DeviceManager();
 
     private:

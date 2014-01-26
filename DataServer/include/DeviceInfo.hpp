@@ -18,6 +18,11 @@ public:
 
         return result;
     }
+
+    bool isEnabled()
+    {
+        return (value("device_enabled") == "true");
+    }
 };
 
 #endif // DEVICEINFO_HPP

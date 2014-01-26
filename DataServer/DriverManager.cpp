@@ -37,6 +37,7 @@ namespace Gateway
             if (driver->driverName() == driverName)
             {
                 result = driver;
+                break;
             }
         }
 
