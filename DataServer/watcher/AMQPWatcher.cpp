@@ -66,7 +66,7 @@ namespace Gateway
             QString to = jsonMessage.value(QString("to")).toString();
             QString body = jsonMessage.value(QString("body")).toString();
 
-            emit messageReceived(new SMS(from, to, body, MessageStatus::Idle));
+            emit messageReceived(new SMS(from, to, body));
         }
         else
         if (type == QString("status_message"))

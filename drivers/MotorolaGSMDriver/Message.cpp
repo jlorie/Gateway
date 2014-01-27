@@ -3,15 +3,11 @@
 Message::Message()
 {}
 
-Message::Message(const QString &from, const QString &to, const QDateTime &date,
-    const QString &body, MessageStatus status)
+Message::Message(const QString &from, const QString &to, const QString &body)
 {
     _from = from;
     _to = to;
-    _date = date;
     _body = body;
-    _status = status;
-
 }
 
 void Message::setFrom(const QString &from)
@@ -34,16 +30,6 @@ QString Message::to() const
     return _to;
 }
 
-void Message::setDate(const QDateTime &date)
-{
-    _date = date;
-}
-
-QDateTime Message::date() const
-{
-    return _date;
-}
-
 void Message::setBody(const QString &body)
 {
     _body = body;
@@ -52,14 +38,4 @@ void Message::setBody(const QString &body)
 QString Message::body() const
 {
     return _body;
-}
-
-void Message::setStatus(MessageStatus status)
-{
-    _status = status;
-}
-
-MessageStatus Message::status() const
-{
-    return _status;
 }

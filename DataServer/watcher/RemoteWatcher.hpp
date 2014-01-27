@@ -17,8 +17,8 @@ namespace Gateway
 
     signals:
         void messageReceived(const IMessage *message);
-        void messageSent(uint messageId);
-        void messageRefused(uint messageId);
+        void messageSent(qlonglong messageId);
+        void messageRefused(qlonglong messageId);
     };
 
 }

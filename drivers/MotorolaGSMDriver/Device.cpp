@@ -106,9 +106,7 @@ void Device::messageReceived(const QString &frame)
         IncomingSMSRecord *incomingSMS = (IncomingSMSRecord *)newRecord;
         Message *newSMS = new Message(incomingSMS->from(),
                                       receiveNumber,
-                                      incomingSMS->date(),
-                                      incomingSMS->body(),
-                                      MessageStatus::Idle);
+                                      incomingSMS->body());
 
         emit number->newMessageReceived((IMessage *)newSMS);
 

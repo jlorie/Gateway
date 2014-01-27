@@ -29,9 +29,7 @@ public:
         QStringList values = data.split(QRegExp("[,\\n]"));
 
         _destinationNumber = Util::trim(values.at(0));
-        _date = QDateTime::fromString(values.at(1) + values.at(2), QString("DD/MM/YY,HH:MM:SS"));
         _message = Util::trim(values.at(4));
-
 
         //TODO tiene problemas con los mensajes con coma, arreglar
         _valid = true;
@@ -42,11 +40,6 @@ public:
         return _destinationNumber;
     }
 
-    QDateTime date() const
-    {
-        return _date;
-    }
-
     QString body() const
     {
         return _message;
@@ -55,7 +48,6 @@ public:
 private:
 
     QString _destinationNumber;
-    QDateTime _date;
     QString _message;
 };
 

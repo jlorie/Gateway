@@ -4,7 +4,6 @@
 #include <include/IMessage.hpp>
 
 #include <QString>
-#include <QDate>
 
 namespace Gateway
 {
@@ -14,12 +13,22 @@ namespace Gateway
         SMS()
         {}
 
-        SMS(const QString &from, const QString &to, const QString &body, MessageStatus status)
+        SMS(const QString &from, const QString &to, const QString &body)
         {
             _from = from;
             _to = to;
             _body = body;
-            _status = status;
+            _id = 0;
+        }
+
+        void setId(qlonglong id)
+        {
+            _id = id;
+        }
+
+        qlonglong id() const
+        {
+            return _id;
         }
 
         void setFrom(const QString &from)
@@ -42,16 +51,6 @@ namespace Gateway
             return _to;
         }
 
-        void setDate(const QDateTime &date)
-        {
-            _date = date;
-        }
-
-        QDateTime date() const
-        {
-            return _date;
-        }
-
         void setBody(const QString &body)
         {
             _body = body;
@@ -62,28 +61,16 @@ namespace Gateway
             return _body;
         }
 
-        void setStatus(MessageStatus status)
-        {
-            _status = status;
-        }
-
-        MessageStatus status() const
-        {
-            return _status;
-        }
-
         QString toString() const
         {
             return QString("From: %1\n Body: %2").arg(_from).arg(_body);
         }
 
     private:
-
+        qlonglong _id;
         QString _from;
         QString _to;
-        QDateTime _date;
         QString _body;
-        MessageStatus _status;
     };
 }
 

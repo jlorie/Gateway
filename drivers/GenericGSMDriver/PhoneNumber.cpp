@@ -38,11 +38,11 @@ void PhoneNumber::sendMessage(const IMessage *message)
 
     if ((result = data.contains("OK")))
     {
-        qDebug ("Sent Message");
+        emit messageSent(message->id());
     }
     else
     {
-        qDebug ("Message could't be sent");
+        emit messageRefused(message->id());
     }
 }
 

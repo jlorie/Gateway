@@ -41,24 +41,12 @@ void MsgOuput(QtMsgType type, const QMessageLogContext &context, const QString& 
     }
 }
 
-QString normalizeNumber(const QString &number)
-{
-    QString countryCode("+53");
-    QString result(number);
-
-    if (number.startsWith("0"))
-        result = countryCode + number.mid(1);
-    else
-    if (!number.startsWith("+"))
-        result.prepend(countryCode);
-
-    return result;
-}
-
 int main(int argc, char *argv[])
 {
 //    qInstallMessageHandler(MsgOuput);
     QApplication a(argc, argv);
+
+    setProxy();
     SystemEngine *engine = new SystemEngine;
 
     qDebug("Running ...");
