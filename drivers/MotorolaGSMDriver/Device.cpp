@@ -68,7 +68,7 @@ ulong Device::initialize()
 
     if (result)
     {
-        _numbers.append(new PhoneNumber);
+        _numbers.append(new PhoneNumber(_physical));
         return Error::OK;
     }
 

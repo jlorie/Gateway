@@ -6,7 +6,8 @@ enum ATCommand
     cmAT,
     cmCMGF,
     cmCNMI,
-    cmACK
+    cmACK,
+    cmCMGS
 };
 
 #endif // ATCOMMANDS_HPP

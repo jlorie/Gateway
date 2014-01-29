@@ -19,5 +19,6 @@ class ATMessage
         // AT Commands
         QString setTextModeCommand(const QString &mode);
         QString setMessageIndicationCommand(const QString &mode);
+        QString sendMessage (const QString &number, const QString &msg);
 };
 #endif // ATMESSAGE_HPP
