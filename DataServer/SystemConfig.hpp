@@ -5,6 +5,7 @@
 
 #include <QObject>
 #include <QSettings>
+#include <QStringList>
 
 namespace Gateway
 {

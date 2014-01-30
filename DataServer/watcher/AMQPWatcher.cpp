@@ -71,7 +71,7 @@ namespace Gateway
         else
         if (type == QString("status_message"))
         {
-            uint messageId = jsonMessage.value(QString("id")).toInt();
+            uint messageId = jsonMessage.value(QString("id")).toString().toInt();
             QString status = jsonMessage.value(QString("status")).toString();
 
             if (status == QString("sent"))
