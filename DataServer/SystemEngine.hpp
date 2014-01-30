@@ -19,6 +19,9 @@ namespace Gateway
         void redirectMessage(const IMessage *message);
 
     private:
+        void registerWatcher();
+
+    private:
         IWatcher *_watcher;
     };
 

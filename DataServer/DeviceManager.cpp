@@ -9,8 +9,6 @@
 #include <SystemConfig.hpp>
 #include <include/CommonErrors.hpp>
 #include <include/IDevice.hpp>
-#include <common/SMS.hpp>
-
 
 namespace Gateway
 {

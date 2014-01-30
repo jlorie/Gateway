@@ -3,15 +3,15 @@
 
 #include <QString>
 
-#include "IDevice.hpp"
+#include "IWatcher.hpp"
 #include "DataStructures/WatcherInfo.hpp"
 
 class WatcherInterface
 {
     public:
-        virtual IDevice *newWatcher(const WatcherInfo &info) = 0;
+        virtual IWatcher *newWatcher(const WatcherInfo &info) = 0;
 
-        virtual QString wactherName() const  = 0;
+        virtual QString watcherName() const  = 0;
         virtual QString description() const  = 0;
 };
 

@@ -5,14 +5,13 @@
 #include <iostream>
 
 #include <QDebug>
-#include <common/SMS.hpp>
 
 using namespace Gateway;
 
 void setProxy()
 {
     QNetworkProxy proxy;
-    proxy.setType(QNetworkProxy::Socks5Proxy);
+    proxy.setType(QNetworkProxy::HttpProxy);
     proxy.setHostName("10.121.6.12");
     proxy.setPort(8080);
 
@@ -43,11 +42,12 @@ void MsgOuput(QtMsgType type, const QMessageLogContext &context, const QString& 
 
 int main(int argc, char *argv[])
 {
-//    qInstallMessageHandler(MsgOuput);
+    qInstallMessageHandler(MsgOuput);
     QApplication a(argc, argv);
 
-//    setProxy();
+    setProxy();
     SystemEngine *engine = new SystemEngine;
+    Q_UNUSED(engine);
 
     qDebug("Running ...");
     return a.exec();

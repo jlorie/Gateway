@@ -4,8 +4,6 @@
 #
 #-------------------------------------------------
 
-include(qamqp/qamqp.pri)
-
 QT       += core gui
 QT       += network
 
@@ -26,7 +24,6 @@ SOURCES += main.cpp\
 
 HEADERS  += ui/mainwindow.h \
     include/CommonErrors.hpp \
-    common/SMS.hpp \    
     DeviceManager.hpp \
     include/IDevice.hpp \
     include/IPhoneNumber.hpp \
@@ -39,4 +36,5 @@ HEADERS  += ui/mainwindow.h \
     include/WatcherInterface.hpp \
     include/DataStructures/DeviceInfo.hpp \
     include/DataStructures/WatcherInfo.hpp \
-    include/IWatcher.hpp
+    include/IWatcher.hpp \
+    include/DataStructures/MessageInfo.hpp

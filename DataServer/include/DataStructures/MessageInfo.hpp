@@ -1,34 +1,33 @@
-#ifndef SMS_HPP
-#define SMS_HPP
+#ifndef MESSAGE_HPP
+#define MESSAGE_HPP
 
 #include <include/IMessage.hpp>
 
-#include <QString>
-
-namespace Gateway
+class MessageInfo: public IMessage
 {
-    class SMS : public IMessage
-    {
     public:
-        SMS()
+        MessageInfo()
+            :_id(0)
         {}
 
-        SMS(const QString &from, const QString &to, const QString &body)
-        {
-            _from = from;
-            _to = to;
-            _body = body;
-            _id = 0;
-        }
+        MessageInfo(const QString &from, const QString &to, const QString &body, const qlonglong id = 0)
+            :_from(from), _to(to), _body(body), _id(id)
+        {}
 
-        void setId(qlonglong id)
+        void setId(const qlonglong id)
         {
+            if (id != 0)
+            {
+                qWarning("Error setting up id, this message has already an id");
+                return;
+            }
+
             _id = id;
         }
 
         qlonglong id() const
         {
-            return _id;
+            return 0;
         }
 
         void setFrom(const QString &from)
@@ -61,17 +60,11 @@ namespace Gateway
             return _body;
         }
 
-        QString toString() const
-        {
-            return QString("From: %1\n Body: %2").arg(_from).arg(_body);
-        }
-
     private:
-        qlonglong _id;
         QString _from;
         QString _to;
         QString _body;
-    };
-}
+        qlonglong _id;
+};
 
 #endif // SMS_HPP
