@@ -4,7 +4,6 @@
 #include <DeviceManager.hpp>
 #include <RemoteStorage.hpp>
 #include <DriverManager.hpp>
-#include <watcher/AMQPWatcher.hpp>
 
 
 #include <common/SMS.hpp>
@@ -18,7 +17,7 @@ namespace Gateway
         DriverManager::initialize();
         DeviceManager::initialize();
 
-        _watcher = new AMQPWatcher();
+//        _watcher = new AMQPWatcher();
 
         RemoteStorage *storage = RemoteStorage::instance();
         DeviceManager *devManager = DeviceManager::instance();
@@ -26,7 +25,7 @@ namespace Gateway
         connect(devManager, SIGNAL(newMessageReceived(const IMessage*)),
                 storage, SLOT(dispatchMessage(const IMessage*)));
 
-        connect(_watcher, SIGNAL(messageReceived(const IMessage*)), this, SLOT(redirectMessage(const IMessage*)));
+//        connect(_watcher, SIGNAL(messageReceived(const IMessage*)), this, SLOT(redirectMessage(const IMessage*)));
     }
 
     void SystemEngine::redirectMessage(const IMessage *message)

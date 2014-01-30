@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <include/IMessage.hpp>
-#include "watcher/RemoteWatcher.hpp"
+#include <include/IWatcher.hpp>
 #include <DeviceManager.hpp>
 
 namespace Gateway
@@ -19,7 +19,7 @@ namespace Gateway
         void redirectMessage(const IMessage *message);
 
     private:
-        RemoteWatcher *_watcher;
+        IWatcher *_watcher;
     };
 
 }

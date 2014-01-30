@@ -1,7 +1,7 @@
 #ifndef SYSTEMCONFIG_HPP
 #define SYSTEMCONFIG_HPP
 
-#include <include/DeviceInfo.hpp>
+#include <include/DataStructures/DeviceInfo.hpp>
 
 #include <QObject>
 #include <QSettings>

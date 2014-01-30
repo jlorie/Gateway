@@ -4,7 +4,7 @@
 #include <QString>
 
 #include "IDevice.hpp"
-#include "DeviceInfo.hpp"
+#include "DataStructures/DeviceInfo.hpp"
 
 class DriverInterface
 {

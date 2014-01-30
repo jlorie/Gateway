@@ -5,8 +5,6 @@
 #include <QByteArray>
 #include <QAuthenticator>
 
-#include <watcher/AMQPWatcher.hpp>
-
 #include <QDebug>
 
 namespace Gateway

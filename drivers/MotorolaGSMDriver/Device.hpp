@@ -2,7 +2,7 @@
 #define DEVICE_HPP
 
 #include <include/IDevice.hpp>
-#include <include/DeviceInfo.hpp>
+#include <include/DataStructures/DeviceInfo.hpp>
 #include <physical/SerialPhysicalLayer.hpp>
 #include <protocol/ATMessage.hpp>
 

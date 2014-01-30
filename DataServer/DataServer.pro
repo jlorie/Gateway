@@ -21,7 +21,6 @@ SOURCES += main.cpp\
     DeviceManager.cpp \
     DriverManager.cpp \
     SystemConfig.cpp \
-    watcher/AMQPWatcher.cpp \
     RemoteStorage.cpp \
     SystemEngine.cpp
 
@@ -35,8 +34,9 @@ HEADERS  += ui/mainwindow.h \
     include/DriverInterface.hpp \
     DriverManager.hpp \
     SystemConfig.hpp \
-    include/DeviceInfo.hpp \
     RemoteStorage.hpp \
-    watcher/RemoteWatcher.hpp \
-    watcher/AMQPWatcher.hpp \
-    SystemEngine.hpp
+    SystemEngine.hpp \
+    include/WatcherInterface.hpp \
+    include/DataStructures/DeviceInfo.hpp \
+    include/DataStructures/WatcherInfo.hpp \
+    include/IWatcher.hpp

@@ -12,7 +12,7 @@ using namespace Gateway;
 void setProxy()
 {
     QNetworkProxy proxy;
-    proxy.setType(QNetworkProxy::HttpProxy);
+    proxy.setType(QNetworkProxy::Socks5Proxy);
     proxy.setHostName("10.121.6.12");
     proxy.setPort(8080);
 
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 //    qInstallMessageHandler(MsgOuput);
     QApplication a(argc, argv);
 
-    setProxy();
+//    setProxy();
     SystemEngine *engine = new SystemEngine;
 
     qDebug("Running ...");
