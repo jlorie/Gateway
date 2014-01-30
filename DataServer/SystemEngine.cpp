@@ -50,17 +50,27 @@ namespace Gateway
 
     void SystemEngine::registerWatcher()
     {
-WatcherInfo watcherInfo;
+WatcherInfo *watcherInfo = new WatcherInfo;
 {
-    watcherInfo.insert("watcher_filename", "/home/lorie/workspace/Projects/_qt-builds/libs/libAMQPWatcher.so");
-    watcherInfo.insert("amqp_host", "hyena.rmq.cloudamqp.com");
-    watcherInfo.insert("amqp_port", "5672");
-    watcherInfo.insert("amqp_vhost", "dfvshlxn");
-    watcherInfo.insert("amqp_user", "dfvshlxn");
-    watcherInfo.insert("amqp_password", "OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
+    //AMQP
+//    watcherInfo.insert("watcher_filename", "/home/lorie/workspace/Projects/_qt-builds/libs/libAMQPWatcher.so");
+//    watcherInfo.insert("amqp_host", "hyena.rmq.cloudamqp.com");
+//    watcherInfo.insert("amqp_port", "5672");
+//    watcherInfo.insert("amqp_vhost", "dfvshlxn");
+//    watcherInfo.insert("amqp_user", "dfvshlxn");
+//    watcherInfo.insert("amqp_password", "OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
+
+    //Http
+    watcherInfo->insert("watcher_filename", "/home/lorie/workspace/Projects/_qt-builds/libs/libHttpWatcher.so");
+    watcherInfo->insert("http_url", "http://cubania.info/app.php/api/sms/");
+    watcherInfo->insert("http_username", "dfvshlxn");
+    watcherInfo->insert("http_password", "OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
+    watcherInfo->insert("http_poll_interval", "5");
+
+    watcherInfo->insert("sms_last_id", "165");
 }
 
-        QPluginLoader loader(watcherInfo.value("watcher_filename"));
+        QPluginLoader loader(watcherInfo->value("watcher_filename"));
         QObject *library = loader.instance();
         if (library)
         {
@@ -74,7 +84,7 @@ WatcherInfo watcherInfo;
                 if (!_watcher)
                 {
                     qWarning("Error initializing watcher %s",
-                             qPrintable(watcherInfo.value("watcher_filename")));
+                             qPrintable(watcherInfo->value("watcher_filename")));
                 }
             }
         }
@@ -83,7 +93,7 @@ WatcherInfo watcherInfo;
             QString error = loader.errorString();
             error = error.mid(error.lastIndexOf(".so:") + 4);
             qWarning("Cannot load watcherLibrary %s: %s",
-                     qPrintable(watcherInfo.value("watcher_filename")), qPrintable(error.toLatin1()));
+                     qPrintable(watcherInfo->value("watcher_filename")), qPrintable(error.toLatin1()));
         }
     }
 }

@@ -15,7 +15,7 @@ class WactherProvider : public QObject, public WatcherInterface
     Q_PLUGIN_METADATA(IID "Gateway.WatcherInterface")
     Q_INTERFACES(WatcherInterface)
 
-    IWatcher *newWatcher(const WatcherInfo &info)
+    IWatcher *newWatcher(WatcherInfo *info)
     {
         return new AMQPWatcher(info);
     }

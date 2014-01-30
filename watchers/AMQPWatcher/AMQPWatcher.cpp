@@ -14,22 +14,15 @@ namespace Watcher
 {
     using QAMQP::Queue;
 
-    AMQPWatcher::AMQPWatcher(const WatcherInfo &info)
+    AMQPWatcher::AMQPWatcher(WatcherInfo *info)
     {
-        qDebug() << QString("-----------------------------");
-        qDebug() << info.value("amqp_host", "localhost");
-        qDebug() << info.value("amqp_port", "5672").toInt();
-        qDebug() << info.value("amqp_vhost", "/");
-        qDebug() << info.value("amqp_user", "guest");
-        qDebug() << info.value("amqp_password", "guest");
-
         _client = new QAMQP::Client(this);
         {
-            _client->setHost(info.value("amqp_host", "localhost"));
-            _client->setPort(info.value("amqp_port", "5672").toInt());
-            _client->setVirtualHost(info.value("amqp_vhost", "/"));
-            _client->setUser(info.value("amqp_user", "guest"));
-            _client->setPassword(info.value("amqp_password", "guest"));
+            _client->setHost(info->value("amqp_host", "localhost"));
+            _client->setPort(info->value("amqp_port", "5672").toInt());
+            _client->setVirtualHost(info->value("amqp_vhost", "/"));
+            _client->setUser(info->value("amqp_user", "guest"));
+            _client->setPassword(info->value("amqp_password", "guest"));
         }
         _client->open();
 
@@ -69,17 +62,6 @@ namespace Watcher
             QString body = jsonMessage.value(QString("body")).toString();
 
             emit messageReceived(new MessageInfo(from, to, body));
-        }
-        else
-        if (type == QString("status_message"))
-        {
-            uint messageId = jsonMessage.value(QString("id")).toString().toInt();
-            QString status = jsonMessage.value(QString("status")).toString();
-
-            if (status == QString("sent"))
-                emit messageSent(messageId);
-            else
-                emit messageRefused(messageId);
         }
     }
 }

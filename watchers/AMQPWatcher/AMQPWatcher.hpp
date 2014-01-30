@@ -16,7 +16,7 @@ namespace Watcher
     {
         Q_OBJECT
     public:
-        explicit AMQPWatcher(const WatcherInfo &info);
+        explicit AMQPWatcher(WatcherInfo *info);
 
     protected slots:
         void declared();

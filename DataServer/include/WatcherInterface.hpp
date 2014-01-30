@@ -9,7 +9,7 @@
 class WatcherInterface
 {
     public:
-        virtual IWatcher *newWatcher(const WatcherInfo &info) = 0;
+        virtual IWatcher *newWatcher(WatcherInfo *info) = 0;
 
         virtual QString watcherName() const  = 0;
         virtual QString description() const  = 0;
