@@ -27,7 +27,7 @@ class MessageInfo: public IMessage
 
         qlonglong id() const
         {
-            return 0;
+            return _id;
         }
 
         void setFrom(const QString &from)

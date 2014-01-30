@@ -1,8 +1,8 @@
 #include <include/CommonErrors.hpp>
+#include <include/DataStructures/MessageInfo.hpp>
 
 #include "Device.hpp"
 #include "PhoneNumber.hpp"
-#include "Message.hpp"
 
 #include <protocol/records/IncomingSMSRecord.hpp>
 
@@ -102,7 +102,7 @@ void Device::messageReceived(const QString &frame)
     if (newRecord->type() == recInconmingMessage)
     {
         IncomingSMSRecord *incomingSMS = (IncomingSMSRecord *)newRecord;
-        Message *newSMS = new Message(normalizeNumber(incomingSMS->from()),
+        MessageInfo *newSMS = new MessageInfo(normalizeNumber(incomingSMS->from()),
                                       normalizeNumber(number->number()),
                                       incomingSMS->body());
 

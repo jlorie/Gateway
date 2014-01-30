@@ -1,14 +1,15 @@
 #include "DeviceManager.hpp"
 #include "DriverManager.hpp"
+#include "RemoteStorage.hpp"
+
+#include <SystemConfig.hpp>
+#include <include/CommonErrors.hpp>
+#include <include/IDevice.hpp>
 
 #include <QDebug>
 #include <QThread>
 
 #include <QDebug>
-
-#include <SystemConfig.hpp>
-#include <include/CommonErrors.hpp>
-#include <include/IDevice.hpp>
 
 namespace Gateway
 {
@@ -70,6 +71,9 @@ namespace Gateway
                     //re-emitting signal
                     connect(phoneNumber, SIGNAL(newMessageReceived(const IMessage*)),
                             this, SIGNAL(newMessageReceived(const IMessage*)));
+
+                    connect(phoneNumber, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
+                            RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
                 }
 
                 QThread *thread = new QThread;

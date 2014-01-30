@@ -37,13 +37,9 @@ void PhoneNumber::sendMessage(const IMessage *message)
     }
 
     if ((result = data.contains("OK")))
-    {
-        emit messageSent(message->id());
-    }
+        emit messageStatusChanged(message->id(), stSent);
     else
-    {
-        emit messageRefused(message->id());
-    }
+        emit messageStatusChanged(message->id(), stFailed);
 }
 
 MessageList PhoneNumber::unreadMessages() const

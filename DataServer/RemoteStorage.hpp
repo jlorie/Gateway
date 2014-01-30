@@ -18,6 +18,7 @@ namespace Gateway
 
     public slots:
         void dispatchMessage(const IMessage *message);
+        void notifyMessageStatus(qlonglong messageId, MessageStatus status);
 
     private slots:
         void requestFinished(QNetworkReply *reply);

@@ -9,6 +9,10 @@
 
 #include <QPluginLoader>
 
+
+
+#include <include/DataStructures/MessageInfo.hpp>
+
 namespace Gateway
 {
     SystemEngine::SystemEngine()

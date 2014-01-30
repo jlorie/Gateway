@@ -3,6 +3,12 @@
 
 #include <QString>
 
+enum MessageStatus
+{
+    stSent,
+    stFailed
+};
+
 class IMessage
 {
     public:

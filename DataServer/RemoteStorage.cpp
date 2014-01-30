@@ -52,6 +52,29 @@ namespace Gateway
 
     }
 
+    void RemoteStorage::notifyMessageStatus(qlonglong messageId, MessageStatus status)
+    {
+        qDebug(">> Notifying message sent");
+        qDebug("----> id: %lld", messageId);
+
+        QString username("dfvshlxn");
+        QString password("OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
+
+        QNetworkRequest request;
+        {
+            request.setUrl(QUrl(QString("http://cubania.info/app.php/api/sms/status/%1/%2").arg(username, password)));
+            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+        }
+
+        QByteArray postData;
+        {
+            postData.append(QByteArray("id=")).append(QString::number(messageId));
+            postData.append(QByteArray("&status=")).append((status == stSent ? "sent" : "failed"));
+        }
+
+        _networkManager.post(request, postData);
+    }
+
     void RemoteStorage::requestFinished(QNetworkReply* reply)
     {
         if (reply->error())

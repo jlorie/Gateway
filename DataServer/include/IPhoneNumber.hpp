@@ -20,8 +20,7 @@ class IPhoneNumber: public QObject
 
     signals:
         void newMessageReceived(const IMessage *message);
-        void messageSent(qlonglong messageId);
-        void messageRefused(qlonglong messageId);
+        void messageStatusChanged(qlonglong messageId, MessageStatus status);
 };
 
 

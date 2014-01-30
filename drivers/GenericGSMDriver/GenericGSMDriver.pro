@@ -21,15 +21,13 @@ SOURCES += \
     Device.cpp \
     PhoneNumber.cpp \
     physical/SerialPhysicalLayer.cpp \
-    protocol/ATMessage.cpp \
-    Message.cpp
+    protocol/ATMessage.cpp
 
 HEADERS +=\
     Device.hpp \
     ../../DataServer/include/IPhoneNumber.hpp \
     ../../DataServer/include/IMessage.hpp \
     ../../DataServer/include/IDevice.hpp \
-    Message.hpp \
     PhoneNumber.hpp \
     physical/SerialPhysicalLayer.hpp \
     ../DataServer/include/CommonErrors.hpp \
@@ -38,4 +36,5 @@ HEADERS +=\
     protocol/records/IncomingSMSRecord.hpp \
     protocol/records/AbstractRecord.hpp \
     Utils.hpp \
-    DriverImp.hpp
+    DriverImp.hpp \
+    ../../DataServer/include/DataStructures/MessageInfo.hpp
