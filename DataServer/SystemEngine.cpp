@@ -54,7 +54,7 @@ namespace Gateway
 
     void SystemEngine::registerWatcher()
     {
-WatcherInfo *watcherInfo = new WatcherInfo;
+WatcherInfo *watcherInfo = SystemConfig::instance()->watcherInfo();
 {
     //AMQP
 //    watcherInfo.insert("watcher_filename", "/home/lorie/workspace/Projects/_qt-builds/libs/libAMQPWatcher.so");
@@ -65,13 +65,13 @@ WatcherInfo *watcherInfo = new WatcherInfo;
 //    watcherInfo.insert("amqp_password", "OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
 
     //Http
-    watcherInfo->insert("watcher_filename", "/home/lorie/workspace/Projects/_qt-builds/libs/libHttpWatcher.so");
-    watcherInfo->insert("http_url", "http://cubania.info/app.php/api/sms/");
-    watcherInfo->insert("http_username", "dfvshlxn");
-    watcherInfo->insert("http_password", "OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
-    watcherInfo->insert("http_poll_interval", "5");
+//    watcherInfo->insert("watcher_filename", "/home/lorie/workspace/Projects/_qt-builds/libs/libHttpWatcher.so");
+//    watcherInfo->insert("http_url", "http://cubania.info/app.php/api/sms/");
+//    watcherInfo->insert("http_username", "dfvshlxn");
+//    watcherInfo->insert("http_password", "OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
+//    watcherInfo->insert("http_poll_interval", "5");
 
-    watcherInfo->insert("sms_last_id", "165");
+//    watcherInfo->insert("sms_last_id", "165");
 }
 
         QPluginLoader loader(watcherInfo->value("watcher_filename"));

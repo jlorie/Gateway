@@ -2,6 +2,7 @@
 #define SYSTEMCONFIG_HPP
 
 #include <include/DataStructures/DeviceInfo.hpp>
+#include <include/DataStructures/WatcherInfo.hpp>
 
 #include <QObject>
 #include <QSettings>
@@ -19,17 +20,23 @@ namespace Gateway
         static SystemConfig *instance();
         static void destroyInstance();
 
-        DeviceInfoList devicesInfo();
+        DeviceInfoList devicesInfo() const;
+        WatcherInfo *watcherInfo() const;
+
         QVariant value(const QString & key, const QVariant & defaultValue = QVariant()) const;
+
+        void loadSettings();
+        void saveSettings();
 
     private:
         SystemConfig();
-        void loadSettings();
+        ~SystemConfig();
 
     private:
         static SystemConfig *_instance;
 
         DeviceInfoList _devicesInfo;
+        WatcherInfo *_watcherInfo;
         QSettings *_settings;
     };
 }
