@@ -3,6 +3,7 @@
 
 #include <include/DataStructures/DeviceInfo.hpp>
 #include <include/DataStructures/WatcherInfo.hpp>
+#include <include/DataStructures/MainInfo.hpp>
 
 #include <QObject>
 #include <QSettings>
@@ -11,6 +12,7 @@
 namespace Gateway
 {
     typedef QList<DeviceInfo> DeviceInfoList;
+    typedef QList<WatcherInfo *> WatcherInfoList;
 
     class SystemConfig : public QObject
     {
@@ -21,22 +23,26 @@ namespace Gateway
         static void destroyInstance();
 
         DeviceInfoList devicesInfo() const;
-        WatcherInfo *watcherInfo() const;
+        WatcherInfoList watchersInfo() const;
+
+        MainInfo *mainInfo() const;
 
         QVariant value(const QString & key, const QVariant & defaultValue = QVariant()) const;
-
-        void loadSettings();
-        void saveSettings();
 
     private:
         SystemConfig();
         ~SystemConfig();
 
+        void loadSettings();
+
     private:
         static SystemConfig *_instance;
 
         DeviceInfoList _devicesInfo;
-        WatcherInfo *_watcherInfo;
+        WatcherInfoList _watchersInfo;
+
+        MainInfo *_mainInfo;
+
         QSettings *_settings;
     };
 }

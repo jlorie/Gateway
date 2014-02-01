@@ -34,11 +34,20 @@ namespace Watcher
 
     }
 
+    void AMQPWatcher::start()
+    {
+        _queue->consume();
+    }
+
+    void AMQPWatcher::stop()
+    {
+        //TODO dejar de recibir mensajes
+    }
+
     void AMQPWatcher::declared()
     {
         _queue->setQOS(0,1);
         _queue->bind("new-exchange", "");
-        _queue->consume();
     }
 
     void AMQPWatcher::newMessage(QAMQP::Queue * q)

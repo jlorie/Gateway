@@ -1,18 +1,18 @@
 #include "DriverManager.hpp"
 
+#include <SystemConfig.hpp>
+
 #include <QPluginLoader>
 #include <QDir>
 
 namespace Gateway
 {
-
-    const QString drivers_path("/home/lorie/workspace/Projects/_qt-builds/libs/");
-
     DriverManager * DriverManager::_instance = 0;
 
     void DriverManager::initialize()
     {
-        _instance = new DriverManager(drivers_path);
+        if (!_instance)
+            _instance = new DriverManager();
     }
 
     DriverManager::~DriverManager()
@@ -44,8 +44,12 @@ namespace Gateway
         return result;
     }
 
-    DriverManager::DriverManager(const QString &drivers_path)
+    DriverManager::DriverManager()
     {
+        QString drivers_path = SystemConfig::instance()
+                ->mainInfo()
+                ->value("lib_path", "/usr/local/lib");
+
         QDir driversDir(drivers_path);
         foreach (QString fileName, driversDir.entryList(QDir::Files))
         {

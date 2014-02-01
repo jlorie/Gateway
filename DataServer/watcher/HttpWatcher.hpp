@@ -2,7 +2,8 @@
 #define WATCHER_HPP
 
 #include <include/IWatcher.hpp>
-#include <include/DataStructures/WatcherInfo.hpp>
+#include <include/DataStructures/MessageList.hpp>
+#include <include/DataStructures/MainInfo.hpp>
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -18,7 +19,12 @@ namespace Watcher
     {
         Q_OBJECT
     public:
-        explicit HttpWatcher(WatcherInfo *info);
+        explicit HttpWatcher();
+
+        void start();
+        void stop();
+
+        MessageList pendingMessages();
 
     public slots:
         void handleResponse(QNetworkReply *reply);
@@ -26,10 +32,14 @@ namespace Watcher
         void poll();
 
     private:
+        MessageList decodeFromJson(const QJsonArray &messageArray);
+
+    private:
         QNetworkAccessManager _networkManager;
-        WatcherInfo *_info;
+        MainInfo *_info;
 
         QTimer _pollingTimer;
+        bool _waitingResponse;
     };
 }
 }

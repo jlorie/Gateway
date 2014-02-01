@@ -1,5 +1,7 @@
 #include <RemoteStorage.hpp>
 
+#include <SystemConfig.hpp>
+
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QByteArray>
@@ -9,6 +11,8 @@
 
 namespace Gateway
 {
+
+    const uint TimeOut = 5000;
 
     RemoteStorage *RemoteStorage::_instance = 0;
 
@@ -37,7 +41,7 @@ namespace Gateway
 
         QNetworkRequest request;
         {
-            request.setUrl(QUrl("http://cubania.info/app.php/api/sms/"));
+            request.setUrl(QUrl(_config->value("http_url") + "sms/"));
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         }
 
@@ -57,12 +61,13 @@ namespace Gateway
         qDebug(">> Notifying message sent");
         qDebug("----> id: %lld", messageId);
 
-        QString username("dfvshlxn");
-        QString password("OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
+        QString username(_config->value("http_username"));
+        QString password(_config->value("http_password"));
 
         QNetworkRequest request;
         {
-            request.setUrl(QUrl(QString("http://cubania.info/app.php/api/sms/status/%1/%2").arg(username, password)));
+            request.setUrl(QUrl(QString(_config->value("http_url") + "/status/%1/%2")
+                                .arg(username, password)));
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         }
 
@@ -91,15 +96,14 @@ namespace Gateway
     {
         Q_UNUSED(reply);
 
-        authenticator->setUser(_username);
-        authenticator->setPassword(_password);
+        authenticator->setUser(_config->value("http_username"));
+        authenticator->setPassword(_config->value("http_password"));
     }
 
 
     RemoteStorage::RemoteStorage()
     {
-        _username = QString("dfvshlxn");
-        _password = QString("OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
+        _config = SystemConfig::instance()->mainInfo();
 
         connect(&_networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(requestFinished(QNetworkReply*)));
         connect(&_networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),

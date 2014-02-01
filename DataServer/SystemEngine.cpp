@@ -1,6 +1,7 @@
 #include "SystemEngine.hpp"
 
 #include <include/WatcherInterface.hpp>
+#include <include/DataStructures/MessageInfo.hpp>
 
 #include <SystemConfig.hpp>
 #include <DeviceManager.hpp>
@@ -9,15 +10,12 @@
 
 #include <QPluginLoader>
 
-
-
-#include <include/DataStructures/MessageInfo.hpp>
-
 namespace Gateway
 {
     SystemEngine::SystemEngine()
     {
         SystemConfig::initialize();
+
         RemoteStorage::initialize();
         DriverManager::initialize();
         DeviceManager::initialize();
@@ -28,24 +26,43 @@ namespace Gateway
         connect(devManager, SIGNAL(newMessageReceived(const IMessage*)),
                 storage, SLOT(dispatchMessage(const IMessage*)));
 
-        registerWatcher();
+        //initialize
+        {
+            registerWatcher();
+            _watcher = _defaultWatcher;
+            _lastId = 0;
+
+            MessageList pendingMessages(_defaultWatcher->pendingMessages());
+            foreach (IMessage *message, pendingMessages)
+            {
+                redirectMessage(message);
+                _lastId = message->id();
+            }
+        }
+
         if (_watcher)
             connect(_watcher, SIGNAL(messageReceived(const IMessage*)), this, SLOT(redirectMessage(const IMessage*)));
     }
 
     void SystemEngine::redirectMessage(const IMessage *message)
     {
+        if (message->id() < _lastId)
+        {
+            qWarning("Ignoring message with id %lld has already processed", message->id());
+            return;
+        }
+
         DeviceManager *devManager = DeviceManager::instance();
         if (!devManager)
         {
-            qDebug("Could not find instance for DeviceManager");
+            qWarning("Could not find instance for DeviceManager");
             return;
         }
 
         IPhoneNumber *sender = devManager->phoneForNumber(message->from());
         if (!sender)
         {
-            qDebug("Could not find instance for number %s", qPrintable(message->from()));
+            qWarning("Could not find instance for number %s", qPrintable(message->from()));
             return;
         }
 
@@ -54,50 +71,46 @@ namespace Gateway
 
     void SystemEngine::registerWatcher()
     {
-WatcherInfo *watcherInfo = SystemConfig::instance()->watcherInfo();
-{
-    //AMQP
-//    watcherInfo.insert("watcher_filename", "/home/lorie/workspace/Projects/_qt-builds/libs/libAMQPWatcher.so");
-//    watcherInfo.insert("amqp_host", "hyena.rmq.cloudamqp.com");
-//    watcherInfo.insert("amqp_port", "5672");
-//    watcherInfo.insert("amqp_vhost", "dfvshlxn");
-//    watcherInfo.insert("amqp_user", "dfvshlxn");
-//    watcherInfo.insert("amqp_password", "OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
+        SystemConfig *config = SystemConfig::instance();
+        qDebug("Registering watchers from %s", qPrintable(config->mainInfo()->value("lib_path")));
 
-    //Http
-//    watcherInfo->insert("watcher_filename", "/home/lorie/workspace/Projects/_qt-builds/libs/libHttpWatcher.so");
-//    watcherInfo->insert("http_url", "http://cubania.info/app.php/api/sms/");
-//    watcherInfo->insert("http_username", "dfvshlxn");
-//    watcherInfo->insert("http_password", "OZE08m61Q_QcN01owJSr4z0eo5cM-OUr");
-//    watcherInfo->insert("http_poll_interval", "5");
-
-//    watcherInfo->insert("sms_last_id", "165");
-}
-
-        QPluginLoader loader(watcherInfo->value("watcher_filename"));
-        QObject *library = loader.instance();
-        if (library)
+        //registering default watcher
         {
-            WatcherInterface *watcherProvider = qobject_cast<WatcherInterface *>(library);
-            if (watcherProvider)
-            {
-                qDebug("Registering watcher: %s", qPrintable(watcherProvider->watcherName()));
-                qDebug(">>    %s", qPrintable(watcherProvider->description()));
+            _defaultWatcher = new HttpWatcher;
+            qDebug("----> HttpWatcher registered");
+        }
 
-                _watcher = watcherProvider->newWatcher(watcherInfo);
-                if (!_watcher)
+        WatcherInfoList infoList = config->watchersInfo();
+
+        foreach (WatcherInfo *watcherInfo, infoList)
+        {
+            QString fileName; // generating fileName
+            {
+                fileName.append(config->mainInfo()->value("lib_path"));
+                if (!fileName.endsWith('/'))
+                    fileName.append("/");
+
+                fileName.append(QString("lib%1.so").arg(watcherInfo->value("watcher_name")));
+            }
+
+            QPluginLoader loader(fileName);
+            QObject *library = loader.instance();
+            if (library)
+            {
+                WatcherInterface *watcherProvider = qobject_cast<WatcherInterface *>(library);
+                if (watcherProvider)
                 {
-                    qWarning("Error initializing watcher %s",
-                             qPrintable(watcherInfo->value("watcher_filename")));
+                    qDebug("----> %s registered, %s", qPrintable(watcherProvider->watcherName()),
+                           qPrintable(watcherProvider->description()));
                 }
             }
-        }
-        else
-        {
-            QString error = loader.errorString();
-            error = error.mid(error.lastIndexOf(".so:") + 4);
-            qWarning("Cannot load watcherLibrary %s: %s",
-                     qPrintable(watcherInfo->value("watcher_filename")), qPrintable(error.toLatin1()));
+            else
+            {
+                QString error = loader.errorString();
+                error = error.mid(error.lastIndexOf(".so:") + 4);
+                qWarning("Cannot load watcherLibrary %s: %s",
+                         qPrintable(fileName), qPrintable(error.toLatin1()));
+            }
         }
     }
 }

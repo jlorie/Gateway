@@ -6,7 +6,7 @@
 const ulong TimeOut = 1000; //1 sec
 const ulong MaxBufferSize = 1024; // 1Kb
 
-SerialPhysicalLayer::SerialPhysicalLayer(const QString serialPort, QObject *parent)
+SerialPhysicalLayer::SerialPhysicalLayer(const QString &serialPort, QObject *parent)
     :QObject(parent)
 {
     _port = new QSerialPort(serialPort);

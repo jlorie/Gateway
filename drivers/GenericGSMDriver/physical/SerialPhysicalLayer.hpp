@@ -11,7 +11,7 @@ class SerialPhysicalLayer : public QObject
 {
     Q_OBJECT
 public:
-    SerialPhysicalLayer(const QString serialPort, QObject *parent = 0);
+    SerialPhysicalLayer(const QString &serialPort, QObject *parent = 0);
     ~SerialPhysicalLayer();
 
     bool isConnected () const;

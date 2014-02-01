@@ -19,11 +19,13 @@ INCLUDEPATH += ../DataServer
 SOURCES += main.cpp\
         MainWindow.cpp \
     ../DataServer/DriverManager.cpp \
-    DeviceBrowser.cpp
+    DeviceBrowser.cpp \
+    ../DataServer/SystemConfig.cpp
 
 HEADERS  += MainWindow.hpp \
     ../DataServer/DriverManager.hpp \
     DeviceBrowser.hpp \
-    DeviceInfo.hpp
+    DeviceInfo.hpp \
+    ../DataServer/SystemConfig.hpp
 
 FORMS    += MainWindow.ui

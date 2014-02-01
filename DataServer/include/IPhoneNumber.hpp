@@ -2,12 +2,10 @@
 #define IPHONENUMBER
 
 #include "IMessage.hpp"
+#include "DataStructures/MessageList.hpp"
 
 #include <QObject>
 #include <QString>
-#include <QList>
-
-typedef QList<IMessage *> MessageList;
 
 class IPhoneNumber: public QObject
 {

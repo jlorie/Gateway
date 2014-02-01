@@ -3,6 +3,7 @@
 
 #include <QMap>
 #include <QString>
+#include "MainInfo.hpp"
 
 class WatcherInfo: public QMap<QString, QString>
 {

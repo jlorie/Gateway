@@ -10,9 +10,9 @@ namespace Gateway
 
         if (!_instance)
         {
-            qDebug(">> Initializing SystemCofig");
+            qDebug("Initializing SystemCofig");
             _instance = new SystemConfig;
-            qDebug(">> SystemCofig initialized");
+            qDebug("----> SystemCofig initialized");
         }
 
         return result;
@@ -33,9 +33,14 @@ namespace Gateway
         return _devicesInfo;
     }
 
-    WatcherInfo *SystemConfig::watcherInfo() const
+    WatcherInfoList SystemConfig::watchersInfo() const
     {
-        return _watcherInfo;
+        return _watchersInfo;
+    }
+
+    MainInfo *SystemConfig::mainInfo() const
+    {
+        return _mainInfo;
     }
 
     QVariant SystemConfig::value(const QString &key, const QVariant &defaultValue) const
@@ -44,7 +49,6 @@ namespace Gateway
     }
 
     SystemConfig::SystemConfig()
-        :_watcherInfo(0)
     {
         _settings = new QSettings("Cubania Team", "Gateway");
         loadSettings();
@@ -52,7 +56,6 @@ namespace Gateway
 
     SystemConfig::~SystemConfig()
     {
-        saveSettings();
     }
 
     void SystemConfig::loadSettings()
@@ -78,28 +81,31 @@ namespace Gateway
 
         _settings->beginGroup(QString("Watchers"));
         {
-            if (_watcherInfo)
-                delete _watcherInfo;
+            foreach (QString group, _settings->childGroups())
+            {
+                _settings->beginGroup(group);
+                {
+                    WatcherInfo * watcher = new WatcherInfo;
+                    foreach (QString key, _settings->allKeys())
+                    {
+                        watcher->insert(key, _settings->value(key).toString());
+                    }
 
-            _watcherInfo = new WatcherInfo;
+                    _watchersInfo.append(watcher);
+                }
+                _settings->endGroup();
+            }
+        }
+        _settings->endGroup();
+
+        _settings->beginGroup(QString("Main"));
+        {
+            _mainInfo = new MainInfo;
             foreach (QString key, _settings->allKeys())
             {
-                _watcherInfo->insert(key, _settings->value(key).toString());
+                _mainInfo->insert(key, _settings->value(key).toString());
             }
         }
         _settings->endGroup();
     }
-
-    void SystemConfig::saveSettings()
-    {
-        _settings->beginGroup("Watchers");
-        {
-            foreach (QString key, _watcherInfo->keys())
-            {
-                _settings->setValue(key, _watcherInfo->value(key));
-            }
-        }
-        _settings->endGroup();
-    }
-
 }

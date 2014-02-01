@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     DriverManager.cpp \
     SystemConfig.cpp \
     RemoteStorage.cpp \
-    SystemEngine.cpp
+    SystemEngine.cpp \
+    watcher/HttpWatcher.cpp
 
 HEADERS  += ui/mainwindow.h \
     include/CommonErrors.hpp \
@@ -37,4 +38,7 @@ HEADERS  += ui/mainwindow.h \
     include/DataStructures/DeviceInfo.hpp \
     include/DataStructures/WatcherInfo.hpp \
     include/IWatcher.hpp \
-    include/DataStructures/MessageInfo.hpp
+    include/DataStructures/MessageInfo.hpp \
+    watcher/HttpWatcher.hpp \
+    include/DataStructures/MessageList.hpp \
+    include/DataStructures/MainInfo.hpp

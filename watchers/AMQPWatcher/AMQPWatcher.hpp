@@ -18,6 +18,9 @@ namespace Watcher
     public:
         explicit AMQPWatcher(WatcherInfo *info);
 
+        void start();
+        void stop();
+
     protected slots:
         void declared();
         void newMessage(QAMQP::Queue * q);

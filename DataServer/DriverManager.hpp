@@ -11,18 +11,15 @@ namespace Gateway
     {
     public:
         static void initialize();
-        ~DriverManager();
-
-        static void destroy();
-
         static DriverManager *instance();
+        static void destroyInstance();
 
         DriverList availableDrivers();
         DriverInterface *driverFor(const QString &driverName);
 
     private:
-        DriverManager(const QString &drivers_path);
-
+        DriverManager();
+        ~DriverManager();
 
     private:
         DriverList _driverLibraries;

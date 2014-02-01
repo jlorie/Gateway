@@ -2,6 +2,7 @@
 #define REMOTESTORAGE_HPP
 
 #include <include/IMessage.hpp>
+#include <include/DataStructures/MainInfo.hpp>
 
 #include <QObject>
 #include <QNetworkAccessManager>
@@ -30,10 +31,7 @@ namespace Gateway
     private:
         static RemoteStorage *_instance;
         QNetworkAccessManager _networkManager;
-
-        QString _username;
-        QString _password;
-
+        MainInfo *_config;
     };
 }
 
