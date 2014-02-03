@@ -3,4 +3,5 @@ CONFIG  += ordered
 
 SUBDIRS += GenericGSMDriver \
 	   MotorolaGSMDriver \
-           TestDriver
+           TestDriver \
+           GammuGSMDriver

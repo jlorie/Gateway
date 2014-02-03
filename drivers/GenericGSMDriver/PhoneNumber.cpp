@@ -18,29 +18,28 @@ QString PhoneNumber::number() const
 
 void PhoneNumber::sendMessage(const IMessage *message)
 {
-//    bool result = false;
-//    QString data;
+    bool result = false;
+    QString data;
 
-//    result = _physical->send(QString("AT+CMGS=\"%1\"").arg(message->to()).append(CR));
-//    if (result)
-//    {
-//        result = _physical->receive(1000, data);
+    result = _physical->send(QString("AT+CMGS=\"%1\"").arg(message->to()).append(CR));
+    if (result)
+    {
+        result = _physical->receive(1000, data);
 
-//        if (data.contains(">"))
-//        {
-//            result = _physical->send(message->body().append(CZ));
-//            if (result)
-//            {
-//                result = _physical->receive(3000, data);
-//            }
-//        }
-//    }
+        if (data.contains(">"))
+        {
+            result = _physical->send(message->body().append(CZ));
+            if (result)
+            {
+                result = _physical->receive(3000, data);
+            }
+        }
+    }
 
-//    if ((result = data.contains("OK")))
-        sleep(1);
+    if ((result = data.contains("OK")))
         emit messageStatusChanged(message->id(), stSent);
-//    else
-//        emit messageStatusChanged(message->id(), stFailed);
+    else
+        emit messageStatusChanged(message->id(), stFailed);
 }
 
 MessageList PhoneNumber::unreadMessages() const
