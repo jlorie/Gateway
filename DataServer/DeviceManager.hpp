@@ -21,9 +21,9 @@ namespace Gateway
         static void destroyInstance();
 
         ulong createDevice(const DeviceInfo &info);
-        ulong deleteDevice(const qlonglong deviceId);
+        ulong deleteDevice(const QString &deviceId);
 
-        IDevice *deviceForId(qlonglong deviceId) const;
+        IDevice *deviceForId(const QString &deviceId) const;
         IPhoneNumber *phoneForNumber(const QString &number) const;
 
     signals:

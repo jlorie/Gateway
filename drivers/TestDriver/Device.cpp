@@ -11,9 +11,9 @@ Device::~Device()
 {
 }
 
-qlonglong Device::deviceId()
+QString Device::deviceId()
 {
-    return 1;
+    return QString("0000000000");
 }
 
 NumberList Device::phoneNumbers() const

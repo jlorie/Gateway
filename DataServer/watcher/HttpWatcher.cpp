@@ -67,24 +67,28 @@ namespace Watcher
         QNetworkReply *reply = _networkManager.get(QNetworkRequest(urlRequest));
         QEventLoop loop;
         {
-            connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+            connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+
             _waitingResponse = true;
             loop.exec();
             _waitingResponse = false;
         }
 
-        QByteArray response (reply->readAll());
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(response);
+        if (!reply->error())
+        {
+            QByteArray response (reply->readAll());
+            QJsonDocument jsonResponse = QJsonDocument::fromJson(response);
 
-        if (jsonResponse.object().contains("sms"))
-            result = decodeFromJson(jsonResponse.object().value(QString("sms")).toArray());
+            if (jsonResponse.object().contains("sms"))
+                result = decodeFromJson(jsonResponse.object().value(QString("sms")).toArray());
+        }
 
         return result;
     }
 
     void HttpWatcher::poll()
     {
-        QUrl urlRequest(_info->value("http_url"));
+        QUrl urlRequest(_info->value("http_url") + "sms/");
         QUrlQuery query;
         {
             query.addQueryItem(QString("id_from"),

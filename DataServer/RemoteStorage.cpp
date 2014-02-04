@@ -66,7 +66,7 @@ namespace Gateway
 
         QNetworkRequest request;
         {
-            request.setUrl(QUrl(QString(_config->value("http_url") + "/status/%1/%2")
+            request.setUrl(QUrl(QString(_config->value("http_url") + "sms/status/%1/%2")
                                 .arg(username, password)));
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         }

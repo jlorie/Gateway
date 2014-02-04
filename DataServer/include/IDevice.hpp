@@ -14,7 +14,7 @@ class IDevice : public QObject
     public:
         virtual ~IDevice() {}
 
-        virtual qlonglong deviceId() = 0;
+        virtual QString deviceId() = 0;
         virtual NumberList phoneNumbers() const = 0;
 };
 

@@ -75,12 +75,11 @@ ulong Device::initialize()
     return Error::errDeviceNotInitialized;
 }
 
-qlonglong Device::deviceId()
+QString Device::deviceId()
 {
-    //TODO determinar el numero de serie por comandos AT
+    //TODO determinar el IMEI por comandos AT
 
-    qlonglong serialNumber(1);
-    return serialNumber;
+    return QString("0000000000000");
 }
 
 NumberList Device::phoneNumbers() const

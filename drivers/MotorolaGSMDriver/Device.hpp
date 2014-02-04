@@ -12,7 +12,7 @@ class Device : public IDevice
     public:
         Device(const DeviceInfo &info);
         ulong initialize();
-        qlonglong deviceId();
+        QString deviceId();
 
         NumberList phoneNumbers() const;
 

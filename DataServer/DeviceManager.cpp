@@ -60,7 +60,7 @@ namespace Gateway
 
             if (device)
             {
-                qDebug("Device %s initialized ...", qPrintable(info.value(QString("device_id"), QString("Unknown"))));
+                qDebug("Device %s initialized ...", qPrintable(device->deviceId()));
 
                 _devices.append(device);
                 foreach (IPhoneNumber *phoneNumber, device->phoneNumbers())
@@ -90,7 +90,7 @@ namespace Gateway
         return result;
     }
 
-    ulong DeviceManager::deleteDevice(const qlonglong deviceId)
+    ulong DeviceManager::deleteDevice(const QString &deviceId)
     {
         ulong result = Error::OK;
 
@@ -108,7 +108,7 @@ namespace Gateway
         return result;
     }
 
-    IDevice *DeviceManager::deviceForId(qlonglong deviceId) const
+    IDevice *DeviceManager::deviceForId(const QString &deviceId) const
     {
         IDevice *result = 0;
 

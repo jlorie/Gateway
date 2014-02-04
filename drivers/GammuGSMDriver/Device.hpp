@@ -20,7 +20,7 @@ namespace Driver
 
             bool initialize();
 
-            qlonglong deviceId();
+            QString deviceId();
             NumberList phoneNumbers() const;
 
         private:

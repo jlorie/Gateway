@@ -13,7 +13,7 @@ class Device : public IDevice
         Device(const DeviceInfo &info);
         bool initialize();
 
-        qlonglong deviceId();
+        QString deviceId();
 
         NumberList phoneNumbers() const;
 

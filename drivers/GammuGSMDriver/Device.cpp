@@ -57,9 +57,12 @@ namespace Driver
         return result;
     }
 
-    qlonglong Device::deviceId()
+    QString Device::deviceId()
     {
-        return 1;
+        char *IMEI = 0;
+        GSM_GetIMEI(_stateMachine, IMEI);
+
+        return QString(IMEI);
     }
 
     NumberList Device::phoneNumbers() const

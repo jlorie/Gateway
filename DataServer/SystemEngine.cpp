@@ -30,23 +30,28 @@ namespace Gateway
         {
             registerWatcher();
             _watcher = _defaultWatcher;
-            _lastId = 0;
+            _lastId = -1;
 
             MessageList pendingMessages(_defaultWatcher->pendingMessages());
             foreach (IMessage *message, pendingMessages)
             {
-                redirectMessage(message);
-                _lastId = message->id();
+                redirectMessage(message);                
             }
         }
 
+//        IPhoneNumber *sender = devManager->phoneForNumber("+584140937970");
+//        sender->sendMessage(new MessageInfo("+584140937970", "+584120884437", "Enviando..."));
+
         if (_watcher)
+        {
             connect(_watcher, SIGNAL(messageReceived(const IMessage*)), this, SLOT(redirectMessage(const IMessage*)));
+            _watcher->start();
+        }
     }
 
     void SystemEngine::redirectMessage(const IMessage *message)
     {
-        if (message->id() < _lastId)
+        if (message->id() < _lastId && _lastId > 0)
         {
             qWarning("Ignoring message with id %lld has already processed", message->id());
             return;
@@ -63,10 +68,15 @@ namespace Gateway
         if (!sender)
         {
             qWarning("Could not find instance for number %s", qPrintable(message->from()));
+            RemoteStorage *storage = RemoteStorage::instance();
+            storage->notifyMessageStatus(message->id(), stFailed);
+
             return;
         }
 
         sender->sendMessage(message);
+        _lastId = message->id();
+        qDebug("lasId: %lld", _lastId);
     }
 
     void SystemEngine::registerWatcher()
