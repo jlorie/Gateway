@@ -3,13 +3,11 @@
 
 #include <QObject>
 #include <include/IMessage.hpp>
-#include <watcher/HttpWatcher.hpp>
+#include <include/IWatcher.hpp>
 #include <DeviceManager.hpp>
 
 namespace Gateway
 {
-    using Watcher::HttpWatcher;
-
     class SystemEngine : public QObject
     {
         Q_OBJECT
@@ -23,9 +21,7 @@ namespace Gateway
         void registerWatcher();
 
     private:
-        HttpWatcher *_defaultWatcher;
         IWatcher *_watcher;
-
         qlonglong _lastId;
     };
 

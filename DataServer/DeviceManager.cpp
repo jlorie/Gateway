@@ -60,29 +60,37 @@ namespace Gateway
 
             if (device)
             {
-                qDebug("Device %s initialized ...", qPrintable(device->deviceId()));
-
-                _devices.append(device);
-                foreach (IPhoneNumber *phoneNumber, device->phoneNumbers())
+                if (device->deviceId() == info.value("device_imei"))
                 {
-                    qDebug("New phone number (%s) has been registered", qPrintable(phoneNumber->number()));
-                    _numbers.append(phoneNumber);
+                    qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceId()));
 
-                    //re-emitting signal
-                    connect(phoneNumber, SIGNAL(newMessageReceived(const IMessage*)),
-                            this, SIGNAL(newMessageReceived(const IMessage*)));
+                    _devices.append(device);
+                    foreach (IPhoneNumber *phoneNumber, device->phoneNumbers())
+                    {
+                        qDebug("New phone number (%s) has been registered", qPrintable(phoneNumber->number()));
+                        _numbers.append(phoneNumber);
 
-                    connect(phoneNumber, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
-                            RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
+                        //re-emitting signal
+                        connect(phoneNumber, SIGNAL(newMessageReceived(const IMessage*)),
+                                this, SIGNAL(newMessageReceived(const IMessage*)));
+
+                        connect(phoneNumber, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
+                                RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
+                    }
+
+                    QThread *thread = new QThread;
+                    device->moveToThread(thread);
+                    thread->start();
                 }
-
-                QThread *thread = new QThread;
-                device->moveToThread(thread);
-                thread->start();
+                else
+                {
+                    qWarning("Device Id not match with configuration Id");
+                    result = Error::errDeviceNotInitialized;
+                }
             }
             else
             {
-                qWarning("Cannot create instance for device: %s", qPrintable(info.value("device_id")));
+                qWarning("Cannot create instance for device: %s", qPrintable(info.value("device_imei")));
                 result = Error::errDeviceNotInitialized;
             }
         }

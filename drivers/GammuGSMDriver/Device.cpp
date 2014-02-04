@@ -59,7 +59,7 @@ namespace Driver
 
     QString Device::deviceId()
     {
-        char *IMEI = 0;
+        char IMEI[30];
         GSM_GetIMEI(_stateMachine, IMEI);
 
         return QString(IMEI);

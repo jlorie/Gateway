@@ -3,6 +3,7 @@
 
 #include <include/IMessage.hpp>
 #include <include/DataStructures/MainInfo.hpp>
+#include <include/DataStructures/MessageList.hpp>
 
 #include <QObject>
 #include <QNetworkAccessManager>
@@ -16,6 +17,9 @@ namespace Gateway
     public:
         static bool initialize();
         static RemoteStorage *instance();
+        static void destroyInstance();
+
+        MessageList pendingMessages();
 
     public slots:
         void dispatchMessage(const IMessage *message);
@@ -32,6 +36,8 @@ namespace Gateway
         static RemoteStorage *_instance;
         QNetworkAccessManager _networkManager;
         MainInfo *_config;
+
+        bool _waitingResponse;
     };
 }
 

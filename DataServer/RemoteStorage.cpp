@@ -1,11 +1,18 @@
 #include <RemoteStorage.hpp>
 
 #include <SystemConfig.hpp>
+#include <include/DataStructures/MessageInfo.hpp>
 
 #include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QByteArray>
 #include <QAuthenticator>
+#include <QUrlQuery>
+
+#include <QByteArray>
+#include <QEventLoop>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 #include <QDebug>
 
@@ -30,6 +37,11 @@ namespace Gateway
     RemoteStorage *RemoteStorage::instance()
     {
         return _instance;
+    }
+
+    void RemoteStorage::destroyInstance()
+    {
+        delete _instance;
     }
 
     void RemoteStorage::dispatchMessage(const IMessage *message)
@@ -80,8 +92,66 @@ namespace Gateway
         _networkManager.post(request, postData);
     }
 
+    MessageList RemoteStorage::pendingMessages()
+    {
+        MessageList result;
+
+        QUrl urlRequest(_config->value("http_url") + "sms/");
+        QUrlQuery query;
+        {
+            query.addQueryItem(QString("status"),QString("sending"));
+
+            query.addQueryItem(QString("page"), QString::number(0));
+            query.addQueryItem(QString("page_size"), QString::number(1000));
+        }
+
+        urlRequest.setQuery(query);
+
+        QNetworkReply *reply = _networkManager.get(QNetworkRequest(urlRequest));
+        QEventLoop loop;
+        {
+            connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+
+            _waitingResponse = true;
+            loop.exec();
+            _waitingResponse = false;
+        }
+
+        if (!reply->error())
+        {
+            QByteArray response (reply->readAll());
+            QJsonDocument jsonResponse = QJsonDocument::fromJson(response);
+
+            if (jsonResponse.object().contains("sms"))
+            {
+                QJsonArray messageArray(jsonResponse.object().value("sms").toArray());
+                foreach (QJsonValue value, messageArray)
+                {
+                    QJsonObject object(value.toObject());
+                    {
+                        qlonglong id = object.value(QString("id")).toVariant().toInt();
+                        QString from = object.value(QString("from")).toString();
+                        QString to = object.value(QString("to")).toString();
+                        QString body = object.value(QString("body")).toString();
+
+                        result.append(new MessageInfo(from, to, body, id));
+                    }
+                }
+            }
+        }
+        else
+        {
+            // TODO retry
+        }
+
+        return result;
+    }
+
     void RemoteStorage::requestFinished(QNetworkReply* reply)
     {
+        if (_waitingResponse)
+            return;
+
         if (reply->error())
         {
             qWarning("Request error: %s", qPrintable(reply->errorString()));
@@ -103,6 +173,7 @@ namespace Gateway
 
     RemoteStorage::RemoteStorage()
     {
+        _waitingResponse = false;
         _config = SystemConfig::instance()->mainInfo();
 
         connect(&_networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(requestFinished(QNetworkReply*)));

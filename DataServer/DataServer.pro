@@ -21,7 +21,7 @@ SOURCES += main.cpp\
     SystemConfig.cpp \
     RemoteStorage.cpp \
     SystemEngine.cpp \
-    watcher/HttpWatcher.cpp
+    WatcherManager.cpp
 
 HEADERS  += ui/mainwindow.h \
     include/CommonErrors.hpp \
@@ -39,6 +39,6 @@ HEADERS  += ui/mainwindow.h \
     include/DataStructures/WatcherInfo.hpp \
     include/IWatcher.hpp \
     include/DataStructures/MessageInfo.hpp \
-    watcher/HttpWatcher.hpp \
     include/DataStructures/MessageList.hpp \
-    include/DataStructures/MainInfo.hpp
+    include/DataStructures/MainInfo.hpp \
+    WatcherManager.hpp

@@ -21,9 +21,9 @@ namespace Gateway
 {
 namespace Watcher
 {
-    HttpWatcher::HttpWatcher()
+    HttpWatcher::HttpWatcher(WatcherInfo *info)
+        :_info(info)
     {
-        _info = SystemConfig::instance()->mainInfo();
         _waitingResponse = false;
 
         connect(&_networkManager, SIGNAL(finished(QNetworkReply*)),
@@ -49,51 +49,11 @@ namespace Watcher
         _pollingTimer.stop();
     }
 
-    MessageList HttpWatcher::pendingMessages()
-    {
-        MessageList result;
-
-        QUrl urlRequest(_info->value("http_url") + "sms/");
-        QUrlQuery query;
-        {
-            query.addQueryItem(QString("status"),QString("sending"));
-
-            query.addQueryItem(QString("page"), QString::number(0));
-            query.addQueryItem(QString("page_size"), QString::number(1000));
-        }
-
-        urlRequest.setQuery(query);
-
-        QNetworkReply *reply = _networkManager.get(QNetworkRequest(urlRequest));
-        QEventLoop loop;
-        {
-            connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-
-            _waitingResponse = true;
-            loop.exec();
-            _waitingResponse = false;
-        }
-
-        if (!reply->error())
-        {
-            QByteArray response (reply->readAll());
-            QJsonDocument jsonResponse = QJsonDocument::fromJson(response);
-
-            if (jsonResponse.object().contains("sms"))
-                result = decodeFromJson(jsonResponse.object().value(QString("sms")).toArray());
-        }
-
-        return result;
-    }
-
     void HttpWatcher::poll()
     {
         QUrl urlRequest(_info->value("http_url") + "sms/");
         QUrlQuery query;
         {
-            query.addQueryItem(QString("id_from"),
-                               QString::number(_info->value("sms_last_id").toInt() + 1));
-
             query.addQueryItem(QString("status"),QString("sending"));
             query.addQueryItem(QString("page"), QString::number(0));
             query.addQueryItem(QString("page_size"), QString::number(1000));

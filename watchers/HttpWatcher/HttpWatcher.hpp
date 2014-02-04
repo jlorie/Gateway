@@ -3,7 +3,7 @@
 
 #include <include/IWatcher.hpp>
 #include <include/DataStructures/MessageList.hpp>
-#include <include/DataStructures/MainInfo.hpp>
+#include <include/DataStructures/WatcherInfo.hpp>
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -19,12 +19,10 @@ namespace Watcher
     {
         Q_OBJECT
     public:
-        explicit HttpWatcher();
+        explicit HttpWatcher(WatcherInfo *info);
 
         void start();
         void stop();
-
-        MessageList pendingMessages();
 
     public slots:
         void handleResponse(QNetworkReply *reply);
@@ -36,7 +34,7 @@ namespace Watcher
 
     private:
         QNetworkAccessManager _networkManager;
-        MainInfo *_info;
+        WatcherInfo *_info;
 
         QTimer _pollingTimer;
         bool _waitingResponse;

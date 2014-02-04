@@ -7,6 +7,7 @@
 #include <DeviceManager.hpp>
 #include <RemoteStorage.hpp>
 #include <DriverManager.hpp>
+#include <WatcherManager.hpp>
 
 #include <QPluginLoader>
 
@@ -19,6 +20,8 @@ namespace Gateway
         RemoteStorage::initialize();
         DriverManager::initialize();
         DeviceManager::initialize();
+        WatcherManager::initialize();
+
 
         RemoteStorage *storage = RemoteStorage::instance();
         DeviceManager *devManager = DeviceManager::instance();
@@ -26,27 +29,31 @@ namespace Gateway
         connect(devManager, SIGNAL(newMessageReceived(const IMessage*)),
                 storage, SLOT(dispatchMessage(const IMessage*)));
 
-        //initialize
-        {
-            registerWatcher();
-            _watcher = _defaultWatcher;
-            _lastId = -1;
 
-            MessageList pendingMessages(_defaultWatcher->pendingMessages());
+        MessageList pendingMessages(storage->pendingMessages());
+        if (!pendingMessages.empty())
+        {
+            qDebug("Processing pending messages from main server ...");
+
             foreach (IMessage *message, pendingMessages)
             {
-                redirectMessage(message);                
+                redirectMessage(message);
             }
+        }
+
+        _watcher = WatcherManager::instance()->activeWatcher();
+        _lastId = -1;
+
+        if (_watcher)
+        {
+            connect(_watcher, SIGNAL(messageReceived(const IMessage*)),
+                    this, SLOT(redirectMessage(const IMessage*)));
+
+            _watcher->start();
         }
 
 //        IPhoneNumber *sender = devManager->phoneForNumber("+584140937970");
 //        sender->sendMessage(new MessageInfo("+584140937970", "+584120884437", "Enviando..."));
-
-        if (_watcher)
-        {
-            connect(_watcher, SIGNAL(messageReceived(const IMessage*)), this, SLOT(redirectMessage(const IMessage*)));
-            _watcher->start();
-        }
     }
 
     void SystemEngine::redirectMessage(const IMessage *message)
@@ -76,51 +83,5 @@ namespace Gateway
 
         sender->sendMessage(message);
         _lastId = message->id();
-        qDebug("lasId: %lld", _lastId);
-    }
-
-    void SystemEngine::registerWatcher()
-    {
-        SystemConfig *config = SystemConfig::instance();
-        qDebug("Registering watchers from %s", qPrintable(config->mainInfo()->value("lib_path")));
-
-        //registering default watcher
-        {
-            _defaultWatcher = new HttpWatcher;
-            qDebug("----> HttpWatcher registered");
-        }
-
-        WatcherInfoList infoList = config->watchersInfo();
-
-        foreach (WatcherInfo *watcherInfo, infoList)
-        {
-            QString fileName; // generating fileName
-            {
-                fileName.append(config->mainInfo()->value("lib_path"));
-                if (!fileName.endsWith('/'))
-                    fileName.append("/");
-
-                fileName.append(QString("lib%1.so").arg(watcherInfo->value("watcher_name")));
-            }
-
-            QPluginLoader loader(fileName);
-            QObject *library = loader.instance();
-            if (library)
-            {
-                WatcherInterface *watcherProvider = qobject_cast<WatcherInterface *>(library);
-                if (watcherProvider)
-                {
-                    qDebug("----> %s registered, %s", qPrintable(watcherProvider->watcherName()),
-                           qPrintable(watcherProvider->description()));
-                }
-            }
-            else
-            {
-                QString error = loader.errorString();
-                error = error.mid(error.lastIndexOf(".so:") + 4);
-                qWarning("Cannot load watcherLibrary %s: %s",
-                         qPrintable(fileName), qPrintable(error.toLatin1()));
-            }
-        }
     }
 }

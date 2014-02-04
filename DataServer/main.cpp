@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(MsgOuput);
     QApplication a(argc, argv);
 
-//    setProxy();
+    setProxy();
     SystemEngine *engine = new SystemEngine;
     Q_UNUSED(engine);
 

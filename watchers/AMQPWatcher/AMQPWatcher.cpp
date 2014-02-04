@@ -25,18 +25,15 @@ namespace Watcher
             _client->setPassword(info->value("amqp_password", "guest"));
         }
         _client->open();
+    }
 
+    void AMQPWatcher::start()
+    {
         _queue = _client->createQueue();
         _queue->declare("new-queue", Queue::Durable);
 
         connect(_queue, SIGNAL(declared()), this, SLOT(declared()));
         connect(_queue, SIGNAL(messageReceived(QAMQP::Queue * )), this, SLOT(newMessage(QAMQP::Queue *)));
-
-    }
-
-    void AMQPWatcher::start()
-    {
-        _queue->consume();
     }
 
     void AMQPWatcher::stop()
@@ -48,6 +45,7 @@ namespace Watcher
     {
         _queue->setQOS(0,1);
         _queue->bind("new-exchange", "");
+        _queue->consume();
     }
 
     void AMQPWatcher::newMessage(QAMQP::Queue * q)
@@ -66,11 +64,12 @@ namespace Watcher
 
         if (type == QString("new_message"))
         {
+            qlonglong id = jsonMessage.value(QString("id")).toVariant().toInt();
             QString from = jsonMessage.value(QString("from")).toString();
             QString to = jsonMessage.value(QString("to")).toString();
             QString body = jsonMessage.value(QString("body")).toString();
 
-            emit messageReceived(new MessageInfo(from, to, body));
+            emit messageReceived(new MessageInfo(from, to, body, id));
         }
     }
 }
