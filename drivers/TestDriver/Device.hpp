@@ -12,7 +12,7 @@ class Device : public IDevice
         ~Device();
 
         QString deviceId();
-        NumberList phoneNumbers() const;
+        void sendMessage(const IMessage *message);
 };
 
 #endif // DEVICE_HPP

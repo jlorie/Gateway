@@ -16,7 +16,7 @@ QString Device::deviceId()
     return QString("0000000000");
 }
 
-NumberList Device::phoneNumbers() const
+void Device::sendMessage(const IMessage *message)
 {
-    return NumberList();
+    Q_UNUSED(message);
 }

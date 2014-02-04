@@ -1,7 +1,6 @@
 #include <include/CommonErrors.hpp>
 
 #include "Device.hpp"
-#include "PhoneNumber.hpp"
 #include "Message.hpp"
 
 #include <protocol/records/IncomingSMSRecord.hpp>
@@ -11,12 +10,13 @@ const ulong TimeOut = 3000;
 Device::Device(const DeviceInfo &info)
 {
     _serialPort = info.value(QString("serial_port"), QString("/dev/gsm_device"));
+    _number = info.value("device_phonenumber");
 
     _physical = new SerialPhysicalLayer(_serialPort);
     connect(_physical, SIGNAL(frameReceived(QString)), this, SLOT(messageReceived(QString)));
 }
 
-ulong Device::initialize()
+bool Device::initialize()
 {
     //_info = info;
     bool result (false);
@@ -66,13 +66,7 @@ ulong Device::initialize()
         }
     }
 
-    if (result)
-    {
-        _numbers.append(new PhoneNumber(_physical));
-        return Error::OK;
-    }
-
-    return Error::errDeviceNotInitialized;
+    return result;
 }
 
 QString Device::deviceId()
@@ -82,15 +76,35 @@ QString Device::deviceId()
     return QString("0000000000000");
 }
 
-NumberList Device::phoneNumbers() const
+void Device::sendMessage(const IMessage *message)
 {
-    return _numbers;
+    bool result = false;
+    ATMessage atMessage;
+
+    CommandArgs args;
+    args ["number"] = QString("\"").append(message->to()).append("\"");
+    args ["text"] = message->body();
+    result = _physical->send(atMessage.assemble(cmCMGS, args));
+    if (result)
+    {
+        QString data;
+        result = _physical->receive(TimeOut, data);
+        qDebug ("DATA = %s", qPrintable (data));
+        result = (data.contains("OK"));
+    }
+    if (result)
+    {
+        qDebug ("Sent Message");
+    }
+    else
+    {
+        qDebug ("Message could't be sent");
+    }
 }
+
 
 void Device::messageReceived(const QString &frame)
 {
-    PhoneNumber *number = (PhoneNumber *)_numbers.first();
-
     qDebug("Message Received");
     AbstractRecord *newRecord = _message.disassemble(frame);
 
@@ -107,16 +121,14 @@ void Device::messageReceived(const QString &frame)
                                       receiveNumber,
                                       incomingSMS->body());
 
-        emit number->newMessageReceived((IMessage *)newSMS);
+        emit newMessageReceived((IMessage *)newSMS);
 
 /////////
         bool result(_physical->send(_message.assemble(cmACK, CommandArgs())));
         if (result)
         {
-            qDebug("Entro al if");
             QString data;
             result = _physical->receive(TimeOut, data);
-             qDebug("--- Device response %s", qPrintable(data));
             if (result && data.contains("OK"))
             {
                 qDebug("New message acknoledged");

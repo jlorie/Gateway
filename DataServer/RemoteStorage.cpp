@@ -70,7 +70,7 @@ namespace Gateway
 
     void RemoteStorage::notifyMessageStatus(qlonglong messageId, MessageStatus status)
     {
-        qDebug(">> Notifying message sent");
+        qDebug(">> Notifying message sent %s", (status == stSent ? "Sent" : "Failed"));
         qDebug("----> id: %lld", messageId);
 
         QString username(_config->value("http_username"));

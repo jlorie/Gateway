@@ -19,7 +19,6 @@ INCLUDEPATH += ../../DataServer
 
 SOURCES += \
     Device.cpp \
-    PhoneNumber.cpp \
     physical/SerialPhysicalLayer.cpp \
     protocol/ATMessage.cpp \
     Message.cpp
@@ -30,7 +29,6 @@ HEADERS +=\
     ../../DataServer/include/IMessage.hpp \
     ../../DataServer/include/IDevice.hpp \
     Message.hpp \
-    PhoneNumber.hpp \
     physical/SerialPhysicalLayer.hpp \
     ../DataServer/include/CommonErrors.hpp \
     protocol/ATMessage.hpp \

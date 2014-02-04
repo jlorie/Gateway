@@ -29,7 +29,7 @@ namespace Gateway
         connect(devManager, SIGNAL(newMessageReceived(const IMessage*)),
                 storage, SLOT(dispatchMessage(const IMessage*)));
 
-
+        _lastId = -1;
         MessageList pendingMessages(storage->pendingMessages());
         if (!pendingMessages.empty())
         {
@@ -42,7 +42,6 @@ namespace Gateway
         }
 
         _watcher = WatcherManager::instance()->activeWatcher();
-        _lastId = -1;
 
         if (_watcher)
         {
@@ -51,9 +50,6 @@ namespace Gateway
 
             _watcher->start();
         }
-
-//        IPhoneNumber *sender = devManager->phoneForNumber("+584140937970");
-//        sender->sendMessage(new MessageInfo("+584140937970", "+584120884437", "Enviando..."));
     }
 
     void SystemEngine::redirectMessage(const IMessage *message)
@@ -71,17 +67,26 @@ namespace Gateway
             return;
         }
 
-        IPhoneNumber *sender = devManager->phoneForNumber(message->from());
-        if (!sender)
+        NumberInfo *phoneNumber = devManager->phoneForNumber(message->from());
+        if (phoneNumber)
         {
-            qWarning("Could not find instance for number %s", qPrintable(message->from()));
-            RemoteStorage *storage = RemoteStorage::instance();
-            storage->notifyMessageStatus(message->id(), stFailed);
+            IDevice *sender = phoneNumber->device();
 
-            return;
+            if (!sender)
+            {
+                qWarning("Could not find instance for device with number %s", qPrintable(message->from()));
+                RemoteStorage *storage = RemoteStorage::instance();
+                storage->notifyMessageStatus(message->id(), stFailed);
+
+                return;
+            }
+
+            sender->sendMessage(message);
+            _lastId = message->id();
         }
-
-        sender->sendMessage(message);
-        _lastId = message->id();
+        else
+        {
+            qWarning("Number %s has not been registered", qPrintable(message->from()));
+        }
     }
 }

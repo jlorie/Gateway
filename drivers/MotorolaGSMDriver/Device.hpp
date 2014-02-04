@@ -11,22 +11,20 @@ class Device : public IDevice
     Q_OBJECT
     public:
         Device(const DeviceInfo &info);
-        ulong initialize();
-        QString deviceId();
+        bool initialize();
 
-        NumberList phoneNumbers() const;
+        QString deviceId();
+        void sendMessage(const IMessage *message);
 
     public slots:
         void messageReceived(const QString &frame);
 
     private:
-        NumberList _numbers;
         QString _serialPort;
+        QString _number;
 
         ATMessage _message;
         SerialPhysicalLayer *_physical;
-        //DeviceInfo _info;
-
 };
 
 #endif // DEVICE_HPP

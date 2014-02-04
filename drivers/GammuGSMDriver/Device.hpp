@@ -21,7 +21,11 @@ namespace Driver
             bool initialize();
 
             QString deviceId();
-            NumberList phoneNumbers() const;
+            void sendMessage(const IMessage *message);
+
+        protected slots:
+            void checkForNewMessage();
+            void discardMessages();
 
         private:
             void configure();
@@ -29,13 +33,14 @@ namespace Driver
 
         private:
             QString _serialPort;
+            QString _number;
 
             GSM_StateMachine *_stateMachine;
             GSM_Config *cfg;
             GSM_Error error;
+            bool _shutdown;
 
             QTimer _timer;
-            NumberList _numbers;
     };
 
 }

@@ -2,17 +2,18 @@
 #include <include/DataStructures/MessageInfo.hpp>
 
 #include "Device.hpp"
-#include "PhoneNumber.hpp"
-
 #include <protocol/records/IncomingSMSRecord.hpp>
 
 const ulong TimeOut = 3000;
 const QString countryCode("+58");
 
+const char CZ = 0x1A;
+const char CR = 0x0D;
 
 Device::Device(const DeviceInfo &info)
 {
     _serialPort = info.value(QString("serial_port"), QString("/dev/gsm_device"));
+    _number = info.value("device_phonenumber");
 
     _physical = new SerialPhysicalLayer(_serialPort);
     connect(_physical, SIGNAL(frameReceived(QString)), this, SLOT(messageReceived(QString)));
@@ -68,11 +69,6 @@ bool Device::initialize()
         }
     }
 
-    if (result)
-    {
-        _numbers.append(new PhoneNumber(_physical));
-    }
-
     return result;
 }
 
@@ -83,16 +79,35 @@ QString Device::deviceId()
     return QString("0000000000000");
 }
 
-NumberList Device::phoneNumbers() const
+void Device::sendMessage(const IMessage *message)
 {
-    return _numbers;
+    bool result = false;
+    QString data;
+
+    result = _physical->send(QString("AT+CMGS=\"%1\"").arg(message->to()).append(CR));
+    if (result)
+    {
+        result = _physical->receive(1000, data);
+
+        if (data.contains(">"))
+        {
+            result = _physical->send(message->body().append(CZ));
+            if (result)
+            {
+                result = _physical->receive(3000, data);
+            }
+        }
+    }
+
+    if ((result = data.contains("OK")))
+        emit messageStatusChanged(message->id(), stSent);
+    else
+        emit messageStatusChanged(message->id(), stFailed);
 }
 
-void Device::messageReceived(const QString &frame)
-{
-    qDebug("Incomming frame: %s", qPrintable(frame));
 
-    PhoneNumber *number = (PhoneNumber *)_numbers.first();
+void Device::messageReceived(const QString &frame)
+{    
     AbstractRecord *newRecord = _message.disassemble(frame);
 
     if (!newRecord)
@@ -101,11 +116,9 @@ void Device::messageReceived(const QString &frame)
     if (newRecord->type() == recInconmingMessage)
     {
         IncomingSMSRecord *incomingSMS = (IncomingSMSRecord *)newRecord;
-        MessageInfo *newSMS = new MessageInfo(normalizeNumber(incomingSMS->from()),
-                                      normalizeNumber(number->number()),
-                                      incomingSMS->body());
+        MessageInfo *newSMS = new MessageInfo(normalizeNumber(incomingSMS->from()), _number, incomingSMS->body());
 
-        emit number->newMessageReceived((IMessage *)newSMS);
+        emit newMessageReceived((IMessage *)newSMS);
     }
 }
 

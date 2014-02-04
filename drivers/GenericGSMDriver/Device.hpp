@@ -14,19 +14,17 @@ class Device : public IDevice
         bool initialize();
 
         QString deviceId();
-
-        NumberList phoneNumbers() const;
+        void sendMessage(const IMessage *message);
 
     public slots:
         void messageReceived(const QString &frame);
-
 
     private:
         QString normalizeNumber(const QString &number);
 
     private:
-        NumberList _numbers;
         QString _serialPort;
+        QString _number;
 
         ATMessage _message;
         SerialPhysicalLayer *_physical;

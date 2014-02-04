@@ -4,6 +4,7 @@
 #include <include/IDevice.hpp>
 #include <include/IMessage.hpp>
 #include <include/DriverInterface.hpp>
+#include <include/DataStructures/NumberInfo.hpp>
 
 #include <QObject>
 #include <QLibrary>
@@ -11,6 +12,7 @@
 namespace Gateway
 {
     typedef QList<IDevice *> DeviceList;
+    typedef QList<NumberInfo *> NumberList;
 
     class DeviceManager : public QObject
     {
@@ -24,7 +26,7 @@ namespace Gateway
         ulong deleteDevice(const QString &deviceId);
 
         IDevice *deviceForId(const QString &deviceId) const;
-        IPhoneNumber *phoneForNumber(const QString &number) const;
+        NumberInfo *phoneForNumber(const QString &number) const;
 
     signals:
          void newMessageReceived(const IMessage *message);

@@ -60,23 +60,22 @@ namespace Gateway
 
             if (device)
             {
-                if (device->deviceId() == info.value("device_imei"))
+                qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceId()));
+
+                _devices.append(device);
+                if (info.contains("device_phonenumber"))
                 {
-                    qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceId()));
+                    QString number(info.value("device_phonenumber"));
+                    _numbers.append(new NumberInfo(number, device));
 
-                    _devices.append(device);
-                    foreach (IPhoneNumber *phoneNumber, device->phoneNumbers())
-                    {
-                        qDebug("New phone number (%s) has been registered", qPrintable(phoneNumber->number()));
-                        _numbers.append(phoneNumber);
+                    qDebug("New phone number %s has been registered", qPrintable(number));
 
-                        //re-emitting signal
-                        connect(phoneNumber, SIGNAL(newMessageReceived(const IMessage*)),
-                                this, SIGNAL(newMessageReceived(const IMessage*)));
+                    //re-emitting signal
+                    connect(device, SIGNAL(newMessageReceived(const IMessage*)),
+                            this, SIGNAL(newMessageReceived(const IMessage*)));
 
-                        connect(phoneNumber, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
-                                RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
-                    }
+                    connect(device, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
+                            RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
 
                     QThread *thread = new QThread;
                     device->moveToThread(thread);
@@ -84,13 +83,14 @@ namespace Gateway
                 }
                 else
                 {
-                    qWarning("Device Id not match with configuration Id");
-                    result = Error::errDeviceNotInitialized;
+                    qWarning("Error phone numbers were not found for device %s", qPrintable(device->deviceId()));
+                    result = Error::errNumberNotFound;
                 }
+
             }
             else
             {
-                qWarning("Cannot create instance for device: %s", qPrintable(info.value("device_imei")));
+                qWarning("Cannot create instance for device: %s", qPrintable(info.value("device_id")));
                 result = Error::errDeviceNotInitialized;
             }
         }
@@ -132,14 +132,14 @@ namespace Gateway
         return result;
     }
 
-    IPhoneNumber *DeviceManager::phoneForNumber(const QString &number) const
+    NumberInfo *DeviceManager::phoneForNumber(const QString &number) const
     {
-        IPhoneNumber *result = 0;
-        foreach (IPhoneNumber *phoneNumber, _numbers)
+        NumberInfo *result = 0;
+        foreach (NumberInfo *info, _numbers)
         {
-            if (phoneNumber->number() == number)
+            if (info->number() == number)
             {
-                result = phoneNumber;
+                result = info;
                 break;
             }
         }

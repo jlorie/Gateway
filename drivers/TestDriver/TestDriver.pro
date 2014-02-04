@@ -16,8 +16,7 @@ INSTALLS += target
 INCLUDEPATH += ../../DataServer
 
 SOURCES += \
-    Device.cpp \
-    PhoneNumber.cpp
+    Device.cpp
     Message.cpp
 
 HEADERS +=\
@@ -27,6 +26,5 @@ HEADERS +=\
     ../../DataServer/include/IMessage.hpp \
     ../../DataServer/include/IDevice.hpp \
     Message.hpp \
-    PhoneNumber.hpp \
     DriverImp.hpp
 

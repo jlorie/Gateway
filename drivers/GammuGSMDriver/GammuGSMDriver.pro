@@ -18,18 +18,15 @@ INCLUDEPATH += ../../DataServer \
 unix|win32: LIBS += -lGammu
 
 SOURCES += \
-    Device.cpp \
-    PhoneNumber.cpp
+    Device.cpp
     Message.cpp
 
 HEADERS +=\
     Device.hpp \
     ../../DataServer/include/DriverInterface.hpp \
-    ../../DataServer/include/IPhoneNumber.hpp \
     ../../DataServer/include/IMessage.hpp \
     ../../DataServer/include/IDevice.hpp \
     Message.hpp \
-    PhoneNumber.hpp \
     DriverImp.hpp \
     ../../DataServer/include/DataStructures/MessageInfo.hpp
 

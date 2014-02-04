@@ -27,7 +27,6 @@ HEADERS  += ui/mainwindow.h \
     include/CommonErrors.hpp \
     DeviceManager.hpp \
     include/IDevice.hpp \
-    include/IPhoneNumber.hpp \
     include/IMessage.hpp \         
     include/DriverInterface.hpp \
     DriverManager.hpp \
@@ -41,4 +40,5 @@ HEADERS  += ui/mainwindow.h \
     include/DataStructures/MessageInfo.hpp \
     include/DataStructures/MessageList.hpp \
     include/DataStructures/MainInfo.hpp \
-    WatcherManager.hpp
+    WatcherManager.hpp \
+    include/DataStructures/NumberInfo.hpp
