@@ -75,18 +75,18 @@ namespace Gateway
             if (!sender)
             {
                 qWarning("Could not find instance for device with number %s", qPrintable(message->from()));
-                RemoteStorage *storage = RemoteStorage::instance();
-                storage->notifyMessageStatus(message->id(), stFailed);
+                RemoteStorage::instance()->notifyMessageStatus(message->id(), stFailed);
 
                 return;
             }
 
-            sender->sendMessage(message);
             _lastId = message->id();
+            sender->sendMessage(message);
         }
         else
         {
             qWarning("Number %s has not been registered", qPrintable(message->from()));
+            RemoteStorage::instance()->notifyMessageStatus(message->id(), stFailed);
         }
     }
 }

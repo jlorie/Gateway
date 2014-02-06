@@ -64,14 +64,12 @@ namespace Gateway
             postData.append(QByteArray("&body=")).append(message->body());
         }
 
-        _networkManager.post(request, postData);
-
+        QNetworkReply *reply = _networkManager.post(request, postData);
     }
 
     void RemoteStorage::notifyMessageStatus(qlonglong messageId, MessageStatus status)
     {
-        qDebug(">> Notifying message sent %s", (status == stSent ? "Sent" : "Failed"));
-        qDebug("----> id: %lld", messageId);
+        qDebug(">> Changing message status %lld to %s", messageId, (status == stSent ? "\"sent\"" : "\"failed\""));
 
         QString username(_config->value("http_username"));
         QString password(_config->value("http_password"));
@@ -168,6 +166,11 @@ namespace Gateway
 
         authenticator->setUser(_config->value("http_username"));
         authenticator->setPassword(_config->value("http_password"));
+    }
+
+    void RemoteStorage::resendFailedMessages()
+    {
+
     }
 
 

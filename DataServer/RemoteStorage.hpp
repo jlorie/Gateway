@@ -6,10 +6,13 @@
 #include <include/DataStructures/MessageList.hpp>
 
 #include <QObject>
+#include <QMap>
 #include <QNetworkAccessManager>
 
 namespace Gateway
 {
+    typedef QPair<QNetworkRequest *, QByteArray *> Request;
+    typedef QMap<qlonglong, Request *> PendingRequests;
 
     class RemoteStorage : public QObject
     {
@@ -29,6 +32,8 @@ namespace Gateway
         void requestFinished(QNetworkReply *reply);
         void authenticate(QNetworkReply *reply, QAuthenticator *authenticator);
 
+        void resendFailedMessages();
+
     private:
         RemoteStorage();
 
@@ -36,6 +41,7 @@ namespace Gateway
         static RemoteStorage *_instance;
         QNetworkAccessManager _networkManager;
         MainInfo *_config;
+        PendingRequests _failedRequests;
 
         bool _waitingResponse;
     };
