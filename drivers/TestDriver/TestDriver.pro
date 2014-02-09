@@ -6,7 +6,6 @@
 
 TEMPLATE = lib
 CONFIG += plugin
-CONFIG += c++11
 #DEFINES += TESTDRIVER_LIBRARY
 TARGET = $$qtLibraryTarget(TestDriver)
 
@@ -16,8 +15,8 @@ INSTALLS += target
 INCLUDEPATH += ../../DataServer
 
 SOURCES += \
-    Device.cpp
-    Message.cpp
+    Device.cpp \    
+    TestDriver.cpp
 
 HEADERS +=\
     Device.hpp \
@@ -25,6 +24,5 @@ HEADERS +=\
     ../../DataServer/include/IPhoneNumber.hpp \
     ../../DataServer/include/IMessage.hpp \
     ../../DataServer/include/IDevice.hpp \
-    Message.hpp \
-    DriverImp.hpp
+    TestDriver.hpp
 

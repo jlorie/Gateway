@@ -6,7 +6,6 @@
 
 TEMPLATE = lib
 CONFIG += plugin
-CONFIG += c++11
 TARGET = $$qtLibraryTarget(GammuGSMDriver)
 
 DESTDIR       = ../../libs
@@ -18,8 +17,8 @@ INCLUDEPATH += ../../DataServer \
 unix|win32: LIBS += -lGammu
 
 SOURCES += \
-    Device.cpp
-    Message.cpp
+    Device.cpp \
+    GammuGSMDriver.cpp
 
 HEADERS +=\
     Device.hpp \
@@ -27,6 +26,6 @@ HEADERS +=\
     ../../DataServer/include/IMessage.hpp \
     ../../DataServer/include/IDevice.hpp \
     Message.hpp \
-    DriverImp.hpp \
-    ../../DataServer/include/DataStructures/MessageInfo.hpp
+    ../../DataServer/include/DataStructures/MessageInfo.hpp \
+    GammuGSMDriver.hpp
 

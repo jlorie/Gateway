@@ -16,12 +16,13 @@ INSTALLS += target
 INCLUDEPATH += ../../DataServer
 
 SOURCES += \
-    HttpWatcher.cpp
+    HttpWatcher.cpp \
+    HttpWatcherProvider.cpp
 
 HEADERS +=\
     ../../DataServer/include/WatcherInterface.hpp \
     ../../DataServer/include/IWatcher.hpp \
     ../../DataServer/include/DataStructures/MessageInfo.hpp \
-    WatcherProvider.hpp \
     HttpWatcher.hpp \
+    HttpWatcherProvider.hpp
 

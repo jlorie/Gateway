@@ -54,11 +54,17 @@ namespace Gateway
 
     void SystemEngine::redirectMessage(const IMessage *message)
     {
-        if (message->id() < _lastId && _lastId > 0)
+        qDebug(">> Redirecting message");
+        qDebug("----> from: %s", qPrintable(message->from()));
+        qDebug("----> to: %s", qPrintable(message->to()));
+        qDebug("----> body: %s", qPrintable(message->body()));
+
+        if (message->id() <= _lastId && _lastId > 0)
         {
             qWarning("Ignoring message with id %lld has already processed", message->id());
             return;
         }
+        _lastId = message->id();
 
         DeviceManager *devManager = DeviceManager::instance();
         if (!devManager)
@@ -80,7 +86,6 @@ namespace Gateway
                 return;
             }
 
-            _lastId = message->id();
             sender->sendMessage(message);
         }
         else

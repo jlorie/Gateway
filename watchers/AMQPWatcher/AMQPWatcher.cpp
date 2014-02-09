@@ -3,8 +3,8 @@
 #include <include/DataStructures/MessageInfo.hpp>
 
 #include <QString>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <qjson/parser.h>
+#include <QVariantMap>
 
 #include <QDebug>
 
@@ -57,17 +57,18 @@ namespace Watcher
         // Ack to server
         q->ack(message);
 
-        QJsonObject response = QJsonDocument::fromJson(message->payload).object();
+        QJson::Parser parser;
+        QVariantMap response = parser.parse(message->payload).toMap();
 
-        QString type = response.value(QString("type")).toString();
-        QJsonObject jsonMessage = response.value("message").toObject();
+        QString type(response.value("type").toString());
+        QVariantMap sms = response.value("message").toMap();
 
         if (type == QString("new_message"))
         {
-            qlonglong id = jsonMessage.value(QString("id")).toVariant().toInt();
-            QString from = jsonMessage.value(QString("from")).toString();
-            QString to = jsonMessage.value(QString("to")).toString();
-            QString body = jsonMessage.value(QString("body")).toString();
+            qlonglong id = sms.value("id").toLongLong();
+            QString from = sms.value("from").toString();
+            QString to = sms.value("to").toString();
+            QString body = sms.value("body").toString();
 
             emit messageReceived(new MessageInfo(from, to, body, id));
         }

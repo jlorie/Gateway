@@ -1,7 +1,6 @@
 TEMPLATE = subdirs
 CONFIG  += ordered
 
-SUBDIRS += GenericGSMDriver \
-	   MotorolaGSMDriver \
+SUBDIRS += \
            TestDriver \
            GammuGSMDriver

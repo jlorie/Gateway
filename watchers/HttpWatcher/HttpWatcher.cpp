@@ -4,16 +4,12 @@
 #include <SystemConfig.hpp>
 
 #include <QUrl>
-#include <QUrlQuery>
 #include <QAuthenticator>
 #include <QNetworkRequest>
 
 #include <QByteArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-
 #include <QEventLoop>
+#include <qjson/parser.h>
 
 #include <QDebug>
 
@@ -52,14 +48,11 @@ namespace Watcher
     void HttpWatcher::poll()
     {
         QUrl urlRequest(_info->value("http_url") + "sms/");
-        QUrlQuery query;
         {
-            query.addQueryItem(QString("status"),QString("sending"));
-            query.addQueryItem(QString("page"), QString::number(0));
-            query.addQueryItem(QString("page_size"), QString::number(1000));
+            urlRequest.addQueryItem(QString("status"),QString("sending"));
+            urlRequest.addQueryItem(QString("page"), QString::number(0));
+            urlRequest.addQueryItem(QString("page_size"), QString::number(1000));
         }
-
-        urlRequest.setQuery(query);
 
         _networkManager.get(QNetworkRequest(urlRequest));
     }
@@ -70,12 +63,12 @@ namespace Watcher
             return;
 
         QByteArray response (reply->readAll());
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(response);
+        QJson::Parser parser;
+        QVariantMap jsonResponse(parser.parse(response).toMap());
 
-        if (jsonResponse.object().contains("sms"))
+        if (jsonResponse.contains("sms"))
         {
-            MessageList messages = decodeFromJson(jsonResponse.object().value(QString("sms")).toArray());
-
+            MessageList messages = decodeFromJson(jsonResponse.value("sms").toList());
             foreach (IMessage *message, messages)
             {
                 emit messageReceived(message);
@@ -83,18 +76,18 @@ namespace Watcher
         }
     }
 
-    MessageList HttpWatcher::decodeFromJson(const QJsonArray &messageArray)
+    MessageList HttpWatcher::decodeFromJson(const QVariantList &messageList)
     {
         MessageList result;
 
-        foreach (QJsonValue value, messageArray)
+        foreach (QVariant value, messageList)
         {
-            QJsonObject object(value.toObject());
+            QVariantMap sms(value.toMap());
             {
-                qlonglong id = object.value(QString("id")).toVariant().toInt();
-                QString from = object.value(QString("from")).toString();
-                QString to = object.value(QString("to")).toString();
-                QString body = object.value(QString("body")).toString();
+                qlonglong id = sms.value("id").toLongLong();
+                QString from = sms.value("from").toString();
+                QString to = sms.value("to").toString();
+                QString body = sms.value("body").toString();
 
                 result.append(new MessageInfo(from, to, body, id));
             }

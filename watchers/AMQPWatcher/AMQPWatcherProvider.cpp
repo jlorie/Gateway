@@ -1,0 +1,24 @@
+#include "AMQPWatcherProvider.hpp"
+
+namespace Gateway
+{
+namespace Watcher
+{
+    IWatcher *AMQPWactherProvider::newWatcher(WatcherInfo *info)
+    {
+        return new AMQPWatcher(info);
+    }
+
+    QString AMQPWactherProvider::watcherName() const
+    {
+        return QString("AMQPWatcher");
+    }
+
+    QString AMQPWactherProvider::description() const
+    {
+        return QString("Watch for events on main server through AMQP protocol and notify to data server");
+    }
+
+    Q_EXPORT_PLUGIN2(amqpWatcher, AMQPWactherProvider)
+}
+}

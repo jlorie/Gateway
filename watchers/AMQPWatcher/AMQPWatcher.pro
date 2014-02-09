@@ -18,11 +18,12 @@ INSTALLS += target
 INCLUDEPATH += ../../DataServer
 
 SOURCES += \
-    AMQPWatcher.cpp
+    AMQPWatcher.cpp \
+    AMQPWatcherProvider.cpp
 
 HEADERS +=\
     ../../DataServer/include/WatcherInterface.hpp \
     ../../DataServer/include/IWatcher.hpp \
-    WatcherProvider.hpp \
     AMQPWatcher.hpp \
-    ../../DataServer/include/DataStructures/MessageInfo.hpp
+    ../../DataServer/include/DataStructures/MessageInfo.hpp \
+    AMQPWatcherProvider.hpp

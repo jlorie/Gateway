@@ -8,6 +8,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
+#include <QVariantList>
 #include <QTimer>
 
 namespace Gateway
@@ -30,7 +31,7 @@ namespace Watcher
         void poll();
 
     private:
-        MessageList decodeFromJson(const QJsonArray &messageArray);
+        MessageList decodeFromJson(const QVariantList &messageList);
 
     private:
         QNetworkAccessManager _networkManager;

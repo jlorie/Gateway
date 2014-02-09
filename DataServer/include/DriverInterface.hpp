@@ -1,6 +1,7 @@
 #ifndef IDEVICEFACTORY_HPP
 #define IDEVICEFACTORY_HPP
 
+#include <QtPlugin>
 #include <QString>
 
 #include "IDevice.hpp"

@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QMap>
+#include <QPair>
 #include <QNetworkAccessManager>
 
 namespace Gateway

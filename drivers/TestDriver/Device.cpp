@@ -1,5 +1,3 @@
-#include <include/CommonErrors.hpp>
-
 #include "Device.hpp"
 
 Device::Device(const DeviceInfo &info)

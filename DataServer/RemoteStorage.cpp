@@ -6,13 +6,12 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QAuthenticator>
-#include <QUrlQuery>
 
 #include <QByteArray>
 #include <QEventLoop>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
+
+#include <QVariantMap>
+#include <qjson/parser.h>
 
 #include <QDebug>
 
@@ -64,7 +63,7 @@ namespace Gateway
             postData.append(QByteArray("&body=")).append(message->body());
         }
 
-        QNetworkReply *reply = _networkManager.post(request, postData);
+        _networkManager.post(request, postData);
     }
 
     void RemoteStorage::notifyMessageStatus(qlonglong messageId, MessageStatus status)
@@ -95,15 +94,12 @@ namespace Gateway
         MessageList result;
 
         QUrl urlRequest(_config->value("http_url") + "sms/");
-        QUrlQuery query;
         {
-            query.addQueryItem(QString("status"),QString("sending"));
+            urlRequest.addQueryItem(QString("status"),QString("sending"));
 
-            query.addQueryItem(QString("page"), QString::number(0));
-            query.addQueryItem(QString("page_size"), QString::number(1000));
+            urlRequest.addQueryItem(QString("page"), QString::number(0));
+            urlRequest.addQueryItem(QString("page_size"), QString::number(1000));
         }
-
-        urlRequest.setQuery(query);
 
         QNetworkReply *reply = _networkManager.get(QNetworkRequest(urlRequest));
         QEventLoop loop;
@@ -118,19 +114,21 @@ namespace Gateway
         if (!reply->error())
         {
             QByteArray response (reply->readAll());
-            QJsonDocument jsonResponse = QJsonDocument::fromJson(response);
+            QJson::Parser parser;
 
-            if (jsonResponse.object().contains("sms"))
+            QVariantMap responseMap = parser.parse(response).toMap();
+
+            if (responseMap.contains("sms"))
             {
-                QJsonArray messageArray(jsonResponse.object().value("sms").toArray());
-                foreach (QJsonValue value, messageArray)
+                QVariantList messageList(responseMap.value("sms").toList());
+                foreach (QVariant value, messageList)
                 {
-                    QJsonObject object(value.toObject());
+                    QVariantMap sms(value.toMap());
                     {
-                        qlonglong id = object.value(QString("id")).toVariant().toInt();
-                        QString from = object.value(QString("from")).toString();
-                        QString to = object.value(QString("to")).toString();
-                        QString body = object.value(QString("body")).toString();
+                        qlonglong id = sms.value("id").toLongLong();
+                        QString from = sms.value("from").toString();
+                        QString to = sms.value("to").toString();
+                        QString body = sms.value("body").toString();
 
                         result.append(new MessageInfo(from, to, body, id));
                     }

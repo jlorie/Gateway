@@ -1,4 +1,3 @@
-#include <include/CommonErrors.hpp>
 #include <include/DataStructures/MessageInfo.hpp>
 
 #include "Device.hpp"
@@ -189,7 +188,7 @@ namespace Driver
         error = GSM_GetSMSStatus(_stateMachine,&SMSStatus);
         if (error == ERR_NONE)
         {
-            new_message = (SMSStatus.SIMUnRead + SMSStatus.PhoneUnRead > 0);
+            new_message = (SMSStatus.SIMUsed + SMSStatus.PhoneUsed > 0);
         }
         else
         if (error == ERR_NOTSUPPORTED || error == ERR_NOTIMPLEMENTED)
@@ -239,7 +238,7 @@ namespace Driver
                             case ERR_EMPTY:
                                 break;
                             default:
-                                qWarning("Error deleting SMS %d", error);
+                                qWarning("Error deleting SMS %s", GSM_ErrorString(error));
                         }
                     }
                 }

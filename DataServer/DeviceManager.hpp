@@ -22,8 +22,8 @@ namespace Gateway
         static DeviceManager * instance();
         static void destroyInstance();
 
-        ulong createDevice(const DeviceInfo &info);
-        ulong deleteDevice(const QString &deviceId);
+        bool createDevice(const DeviceInfo &info);
+        bool deleteDevice(const QString &deviceId);
 
         IDevice *deviceForId(const QString &deviceId) const;
         NumberInfo *phoneForNumber(const QString &number) const;

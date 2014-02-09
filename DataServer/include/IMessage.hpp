@@ -2,6 +2,7 @@
 #define IMESSAGE_HPP
 
 #include <QString>
+#include <QObject>
 
 enum MessageStatus
 {
@@ -9,7 +10,7 @@ enum MessageStatus
     stFailed
 };
 
-class IMessage
+class IMessage : public QObject
 {
     public:
         virtual qlonglong id() const = 0;

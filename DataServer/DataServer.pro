@@ -9,11 +9,8 @@ QT       += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++11
-
-TARGET = untitled
+TARGET = DataServer
 TEMPLATE = app
-
 
 SOURCES += main.cpp\   
     DeviceManager.cpp \
@@ -24,7 +21,6 @@ SOURCES += main.cpp\
     WatcherManager.cpp
 
 HEADERS  += ui/mainwindow.h \
-    include/CommonErrors.hpp \
     DeviceManager.hpp \
     include/IDevice.hpp \
     include/IMessage.hpp \         
@@ -42,3 +38,5 @@ HEADERS  += ui/mainwindow.h \
     include/DataStructures/MainInfo.hpp \
     WatcherManager.hpp \
     include/DataStructures/NumberInfo.hpp
+
+unix|win32: LIBS += -lqjson

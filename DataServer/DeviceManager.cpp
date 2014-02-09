@@ -3,7 +3,6 @@
 #include "RemoteStorage.hpp"
 
 #include <SystemConfig.hpp>
-#include <include/CommonErrors.hpp>
 #include <include/IDevice.hpp>
 
 #include <QDebug>
@@ -40,9 +39,9 @@ namespace Gateway
         _instance = 0;
     }
 
-    ulong DeviceManager::createDevice(const DeviceInfo &info)
+    bool DeviceManager::createDevice(const DeviceInfo &info)
     {
-        ulong result = Error::OK;
+        bool result(true);
 
         IDevice *device = 0;
         {
@@ -53,7 +52,7 @@ namespace Gateway
             if (!driver)
             {
                 qWarning("Could not find driver %s", qPrintable(driverName));
-                return Error::errDriverNotFound;
+                return false;
             }
 
             device = driver->newDevice(info);
@@ -84,23 +83,23 @@ namespace Gateway
                 else
                 {
                     qWarning("Error phone numbers were not found for device %s", qPrintable(device->deviceId()));
-                    result = Error::errNumberNotFound;
+                    result = false;
                 }
 
             }
             else
             {
                 qWarning("Cannot create instance for device: %s", qPrintable(info.value("device_id")));
-                result = Error::errDeviceNotInitialized;
+                result = false;
             }
         }
 
         return result;
     }
 
-    ulong DeviceManager::deleteDevice(const QString &deviceId)
+    bool DeviceManager::deleteDevice(const QString &deviceId)
     {
-        ulong result = Error::OK;
+        ulong result(true);
 
         IDevice *deviceToDelete = deviceForId(deviceId);
 
@@ -110,7 +109,7 @@ namespace Gateway
         }
         else
         {
-            result = Error::errDeviceNotFound;
+            result = false;
         }
 
         return result;
