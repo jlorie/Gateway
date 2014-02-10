@@ -4,14 +4,14 @@ namespace Gateway
 {
     SystemConfig *SystemConfig::_instance = 0;
 
-    bool SystemConfig::initialize()
+    bool SystemConfig::initialize(const QString &configFile)
     {
         bool result(true);
 
         if (!_instance)
         {
             qDebug("Initializing SystemCofig");
-            _instance = new SystemConfig;
+            _instance = new SystemConfig(configFile);
             qDebug("----> SystemCofig initialized");
         }
 
@@ -48,9 +48,13 @@ namespace Gateway
         return _settings->value(key, defaultValue);
     }
 
-    SystemConfig::SystemConfig()
+    SystemConfig::SystemConfig(const QString &configFile)
     {
-        _settings = new QSettings("Cubania Team", "Gateway");
+        if (configFile.isEmpty())
+            _settings = new QSettings("Cubania Team", "Gateway");
+        else
+            _settings = new QSettings(configFile, QSettings::IniFormat);
+
         loadSettings();
     }
 

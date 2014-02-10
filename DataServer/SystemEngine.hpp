@@ -19,6 +19,7 @@ namespace Gateway
 
     private:
         void registerWatcher();
+        void setProxy();
 
     private:
         IWatcher *_watcher;

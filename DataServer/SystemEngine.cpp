@@ -9,13 +9,14 @@
 #include <DriverManager.hpp>
 #include <WatcherManager.hpp>
 
+#include <QNetworkProxy>
 #include <QPluginLoader>
 
 namespace Gateway
 {
     SystemEngine::SystemEngine()
     {
-        SystemConfig::initialize();
+        setProxy();
 
         RemoteStorage::initialize();
         DriverManager::initialize();
@@ -30,11 +31,10 @@ namespace Gateway
                 storage, SLOT(dispatchMessage(const IMessage*)));
 
         _lastId = -1;
+        qDebug("Fetching pending messages from main server ...");
         MessageList pendingMessages(storage->pendingMessages());
         if (!pendingMessages.empty())
         {
-            qDebug("Processing pending messages from main server ...");
-
             foreach (IMessage *message, pendingMessages)
             {
                 redirectMessage(message);
@@ -92,6 +92,24 @@ namespace Gateway
         {
             qWarning("Number %s has not been registered", qPrintable(message->from()));
             RemoteStorage::instance()->notifyMessageStatus(message->id(), stFailed);
+        }
+    }
+
+    void SystemEngine::setProxy()
+    {
+        SystemConfig *config = SystemConfig::instance();
+
+        if (config->value("proxy_enabled").toString() == "1")
+        {
+            QString hostName(config->value("proxy_hostname").toString());
+            uint port(config->value("proxy_port").toInt());
+
+            QNetworkProxy proxy;
+            proxy.setType(QNetworkProxy::HttpProxy);
+            proxy.setHostName(hostName);
+            proxy.setPort(port);
+
+            QNetworkProxy::setApplicationProxy(proxy);
         }
     }
 }

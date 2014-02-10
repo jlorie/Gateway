@@ -4,13 +4,17 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core
 QT       += network
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       -= gui
 
 TARGET = DataServer
 TEMPLATE = app
+
+CONFIG   += console
+
+DESTDIR       = ../Gateway/bin
+INSTALLS += target
 
 SOURCES += main.cpp\   
     DeviceManager.cpp \
@@ -20,8 +24,7 @@ SOURCES += main.cpp\
     SystemEngine.cpp \
     WatcherManager.cpp
 
-HEADERS  += ui/mainwindow.h \
-    DeviceManager.hpp \
+HEADERS  += DeviceManager.hpp \
     include/IDevice.hpp \
     include/IMessage.hpp \         
     include/DriverInterface.hpp \

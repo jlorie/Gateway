@@ -8,7 +8,7 @@ TEMPLATE = lib
 CONFIG += plugin
 TARGET = $$qtLibraryTarget(GammuGSMDriver)
 
-DESTDIR       = ../../libs
+DESTDIR       = ../../Gateway/libs
 INSTALLS += target
 
 INCLUDEPATH += ../../DataServer \

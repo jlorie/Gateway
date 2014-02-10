@@ -10,7 +10,7 @@ CONFIG += plugin
 
 TARGET = $$qtLibraryTarget(HttpWatcher)
 
-DESTDIR       = ../../libs
+DESTDIR       = ../../Gateway/libs
 INSTALLS += target
 
 INCLUDEPATH += ../../DataServer

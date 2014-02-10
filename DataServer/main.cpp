@@ -1,22 +1,13 @@
-#include <SystemEngine.hpp>
+#include <QCoreApplication>
 
-#include <QApplication>
-#include <QNetworkProxy>
-#include <iostream>
+#include <SystemEngine.hpp>
+#include <SystemConfig.hpp>
+
+#include <QStringList>
 
 #include <QDebug>
 
 using namespace Gateway;
-
-void setProxy()
-{
-    QNetworkProxy proxy;
-    proxy.setType(QNetworkProxy::HttpProxy);
-    proxy.setHostName("10.121.6.12");
-    proxy.setPort(8080);
-
-    QNetworkProxy::setApplicationProxy(proxy);
-}
 
 //void MsgOuput(QtMsgType type, const QMessageLogContext &context, const QString& qmsg)
 //{
@@ -43,12 +34,21 @@ void setProxy()
 int main(int argc, char *argv[])
 {
 //    qInstallMessageHandler(MsgOuput);
-    QApplication a(argc, argv);
+    QCoreApplication app(argc, argv);
 
-//    setProxy();
+    //TODO hola mundo
+
+    QString configFile("");
+    foreach (QString option, app.arguments())
+    {
+        if (option.startsWith("--config"))
+            configFile = option.mid(strlen("--config") + 1);
+    }
+
+    SystemConfig::initialize(configFile);
     SystemEngine *engine = new SystemEngine;
     Q_UNUSED(engine);
 
     qDebug("Running ...");
-    return a.exec();
+    return app.exec();
 }

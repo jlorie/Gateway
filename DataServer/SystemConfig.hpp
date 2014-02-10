@@ -18,7 +18,7 @@ namespace Gateway
     {
         Q_OBJECT
     public:
-        static bool initialize();
+        static bool initialize(const QString &configFile);
         static SystemConfig *instance();
         static void destroyInstance();
 
@@ -30,7 +30,7 @@ namespace Gateway
         QVariant value(const QString & key, const QVariant & defaultValue = QVariant()) const;
 
     private:
-        SystemConfig();
+        SystemConfig(const QString &configFile);
         ~SystemConfig();
 
         void loadSettings();

@@ -9,7 +9,7 @@ CONFIG += plugin
 #DEFINES += TESTDRIVER_LIBRARY
 TARGET = $$qtLibraryTarget(TestDriver)
 
-DESTDIR       = ../../libs
+DESTDIR       = ../../Gateway/libs
 INSTALLS += target
 
 INCLUDEPATH += ../../DataServer

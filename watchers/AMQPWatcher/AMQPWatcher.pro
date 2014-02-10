@@ -12,7 +12,7 @@ CONFIG += plugin
 
 TARGET = $$qtLibraryTarget(AMQPWatcher)
 
-DESTDIR       = ../../libs
+DESTDIR       = ../../Gateway/libs
 INSTALLS += target
 
 INCLUDEPATH += ../../DataServer
