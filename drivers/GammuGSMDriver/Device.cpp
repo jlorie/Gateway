@@ -137,7 +137,7 @@ namespace Driver
         /* We used default coding for text */
         sms.Coding = SMS_Coding_Default_No_Compression;
         /* Class 1 message (normal) */
-        sms.Class = 1;
+        sms.Class = 1;        
 
         /* Set callback for message sending */
         /* This needs to be done after initiating connection */
@@ -231,6 +231,7 @@ namespace Driver
                                     new MessageInfo(QString(DecodeUnicodeConsole(sms.SMS[i].Number)),_number,
                                                     QString(DecodeUnicodeConsole(sms.SMS[i].Text))));
 
+                        sms.SMS[i].Folder = 0;
                         error = GSM_DeleteSMS(_stateMachine, &sms.SMS[i]);
                         switch (error)
                         {

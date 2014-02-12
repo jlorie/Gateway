@@ -7,6 +7,7 @@
 #include <QAuthenticator>
 #include <QNetworkRequest>
 
+#include <QTime>
 #include <QByteArray>
 #include <QEventLoop>
 #include <qjson/parser.h>
@@ -47,6 +48,11 @@ namespace Watcher
 
     void HttpWatcher::poll()
     {
+        // check time
+        if (QTime::currentTime().hour() < 7)
+            activateLowComsumption(true);
+        else
+            activateLowComsumption(false);
 
         QUrl urlRequest(_info->value("http_url") + "sms/");
         {
@@ -103,6 +109,25 @@ namespace Watcher
 
         authenticator->setUser(_info->value("http_username", "guest"));
         authenticator->setPassword(_info->value("http_password", "guest"));
+    }
+
+    void HttpWatcher::activateLowComsumption(bool active)
+    {
+        if (active == _lowComsumtionActive)
+            return;
+
+        if (active)
+        {
+            qDebug(">> Activating low network comsumption");
+            _pollingTimer.setInterval(60 * 5 * 1000); // 5 mins
+        }
+        else
+        {
+            qDebug(">> Deactivating low network comsumption");
+            _pollingTimer.setInterval(_info->value("http_poll_interval", "5").toInt() * 1000);
+        }
+
+        _lowComsumtionActive = active;
     }
 }
 }

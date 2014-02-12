@@ -32,6 +32,7 @@ namespace Watcher
 
     private:
         MessageList decodeFromJson(const QVariantList &messageList);
+        void activateLowComsumption(bool active);
 
     private:
         QNetworkAccessManager _networkManager;
@@ -39,6 +40,7 @@ namespace Watcher
 
         QTimer _pollingTimer;
         bool _waitingResponse;
+        bool _lowComsumtionActive;
     };
 }
 }
