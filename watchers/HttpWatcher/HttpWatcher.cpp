@@ -47,6 +47,7 @@ namespace Watcher
 
     void HttpWatcher::poll()
     {
+
         QUrl urlRequest(_info->value("http_url") + "sms/");
         {
             urlRequest.addQueryItem(QString("status"),QString("sending"));

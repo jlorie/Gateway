@@ -21,7 +21,6 @@ namespace Gateway
         RemoteStorage::initialize();
         DriverManager::initialize();
         DeviceManager::initialize();
-        WatcherManager::initialize();
 
 
         RemoteStorage *storage = RemoteStorage::instance();
@@ -41,6 +40,7 @@ namespace Gateway
             }
         }
 
+        WatcherManager::initialize();
         _watcher = WatcherManager::instance()->activeWatcher();
 
         if (_watcher)
@@ -99,10 +99,10 @@ namespace Gateway
     {
         SystemConfig *config = SystemConfig::instance();
 
-        if (config->value("proxy_enabled").toString() == "1")
+        if (config->value("Main/proxy_enabled").toInt() == 1)
         {
-            QString hostName(config->value("proxy_hostname").toString());
-            uint port(config->value("proxy_port").toInt());
+            QString hostName(config->value("Main/proxy_hostname").toString());
+            uint port(config->value("Main/proxy_port").toInt());
 
             QNetworkProxy proxy;
             proxy.setType(QNetworkProxy::HttpProxy);
