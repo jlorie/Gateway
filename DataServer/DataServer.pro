@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     SystemConfig.cpp \
     RemoteStorage.cpp \
     SystemEngine.cpp \
-    WatcherManager.cpp
+    WatcherManager.cpp \
+    common/NetworkManager.cpp
 
 HEADERS  += DeviceManager.hpp \
     include/IDevice.hpp \
@@ -40,6 +41,8 @@ HEADERS  += DeviceManager.hpp \
     include/DataStructures/MessageList.hpp \
     include/DataStructures/MainInfo.hpp \
     WatcherManager.hpp \
-    include/DataStructures/NumberInfo.hpp
+    include/DataStructures/NumberInfo.hpp \
+    common/NetworkManager.hpp \
+    common/RequestInfo.hpp
 
 unix|win32: LIBS += -lqjson
