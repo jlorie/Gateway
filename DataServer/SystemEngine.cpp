@@ -21,6 +21,7 @@ namespace Gateway
         RemoteStorage::initialize();
         DriverManager::initialize();
         DeviceManager::initialize();
+        WatcherManager::initialize();
 
 
         RemoteStorage *storage = RemoteStorage::instance();
@@ -40,7 +41,6 @@ namespace Gateway
             }
         }
 
-        WatcherManager::initialize();
         _watcher = WatcherManager::instance()->activeWatcher();
 
         if (_watcher)

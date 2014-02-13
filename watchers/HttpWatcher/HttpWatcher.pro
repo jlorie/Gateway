@@ -25,4 +25,3 @@ HEADERS +=\
     ../../DataServer/include/DataStructures/MessageInfo.hpp \
     HttpWatcher.hpp \
     HttpWatcherProvider.hpp
-

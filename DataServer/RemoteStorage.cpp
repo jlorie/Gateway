@@ -92,6 +92,7 @@ namespace Gateway
     MessageList RemoteStorage::pendingMessages()
     {
         MessageList result;
+        static int retries = _config->value("http_retries").toInt();
 
         QUrl urlRequest(_config->value("http_url") + "sms/");
         {
@@ -134,10 +135,22 @@ namespace Gateway
                     }
                 }
             }
+
+            retries = _config->value("Main/http_retries").toInt();
         }
         else
         {
-            // TODO retry
+            qWarning("Error fetching pending messages ... retrying ...");
+
+            if (retries--)
+            {
+                pendingMessages();
+            }
+            else
+            {
+                retries = _config->value("http_retries").toInt();
+                qWarning("Network error, could not stablish connection with main server");
+            }
         }
 
         return result;
@@ -148,13 +161,28 @@ namespace Gateway
         if (_waitingResponse)
             return;
 
-        if (reply->error())
-        {
-            qWarning("Request error: %s", qPrintable(reply->errorString()));
-            return;
-        }
+        static int retries = _config->value("http_retries").toInt();
 
-        qDebug() << reply->readAll();
+        if (!reply->error())
+        {
+            qDebug() << reply->readAll();
+
+            retries = _config->value("http_retries").toInt();
+        }
+        else
+        {
+            qWarning("Request error: %s, retrying ....", qPrintable(reply->errorString()));
+
+            if (retries--)
+            {
+                _networkManager.retry(reply->request());
+            }
+            else
+            {
+                retries = _config->value("http_retries").toInt();
+                qWarning("Network error, could not stablish connection with main server");
+            }
+        }
     }
 
 
@@ -165,12 +193,6 @@ namespace Gateway
         authenticator->setUser(_config->value("http_username"));
         authenticator->setPassword(_config->value("http_password"));
     }
-
-    void RemoteStorage::resendFailedMessages()
-    {
-
-    }
-
 
     RemoteStorage::RemoteStorage()
     {
