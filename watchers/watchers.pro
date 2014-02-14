@@ -3,5 +3,4 @@ CONFIG  += ordered
 
 SUBDIRS += \
     AMQPWatcher \
-    HttpWatcher \
-    XmppWatcher
+    HttpWatcher
