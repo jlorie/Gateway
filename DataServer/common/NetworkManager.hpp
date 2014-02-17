@@ -11,7 +11,7 @@
 
 namespace Gateway
 {
-    typedef QMap<const QNetworkRequest *, QByteArray> PendingRequests;
+    typedef QList<QNetworkRequest> PendingRequests;
 
     class NetworkManager: public QObject
     {
@@ -23,12 +23,18 @@ namespace Gateway
         virtual QNetworkReply *get(const QNetworkRequest &request);
 
         bool waitForResponse();
+
+        enum RequestAtribute
+        {
+            AttrPostData = 1001
+        };
     signals:
         void authenticationRequired (QNetworkReply * reply, QAuthenticator * authenticator);
         void finished (QNetworkReply * reply);
 
     private slots:
         void discardRequest(QNetworkReply *reply);
+        void retryFailedRequests();
 
     private:
         QNetworkAccessManager _manager;
@@ -38,5 +44,6 @@ namespace Gateway
         uint _retries;
         QNetworkReply::NetworkError _networkError;
     };
+
 }
 #endif // NETWORKMANAGER_HPP

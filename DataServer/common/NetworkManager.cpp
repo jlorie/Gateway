@@ -1,8 +1,11 @@
 #include "NetworkManager.hpp"
 
+#include <QTimer>
+
 namespace Gateway
 {
     const uint defaultRetries = 3;
+    const uint defaultRetryTimeOut = 300;
 
     NetworkManager::NetworkManager(QObject *parent)
         :QObject(parent)
@@ -18,8 +21,10 @@ namespace Gateway
 
     QNetworkReply *NetworkManager::post(const QNetworkRequest &request, const QByteArray &postData)
     {
-        _pendingRequests.insert(&request, postData);
-        return _manager.post(request, postData);
+        QNetworkRequest withData = request;
+        withData.setAttribute((QNetworkRequest::Attribute)AttrPostData, postData);
+
+        return _manager.post(withData, postData);
     }
 
     QNetworkReply *NetworkManager::get(const QNetworkRequest &request)
@@ -38,16 +43,13 @@ namespace Gateway
     {
         if (!reply->error())
         {
-            const QNetworkRequest &request(reply->request());
-            _pendingRequests.take(&request);
-
             if (_loop.isRunning())
                 _loop.quit();
 
             _retries = defaultRetries;
         }
         else
-        if (_retries --)
+        if (--_retries)
         {
             qWarning("Request error %s ... retrying ...", qPrintable(reply->errorString()));
 
@@ -60,8 +62,11 @@ namespace Gateway
                 }
                 case QNetworkAccessManager::PostOperation:
                 {
-                    const QNetworkRequest &request = reply->request();
-                    this->post(reply->request(), _pendingRequests.take(&request));
+                    QByteArray postData(reply->request()
+                                        .attribute((QNetworkRequest::Attribute)AttrPostData)
+                                        .toByteArray());
+
+                    this->post(reply->request(), postData);
                     break;
                 }
                 default:
@@ -70,19 +75,36 @@ namespace Gateway
         }
         else
         {
+            qWarning("Request error %s ... retrying ...", qPrintable(reply->errorString()));
             qWarning("Could not stablish connection with main server");
-            qDebug("----> Saving pending requests ...");
-            {
-                //TODO guardar peticiones pendientes
-            }
+            QTimer::singleShot(60 * defaultRetryTimeOut, this, SLOT(retryFailedRequests()));
 
             if (_loop.isRunning())
                 _loop.quit();
 
             _retries = defaultRetries;
+
+            // Solo se guardan como pendientes las notifiaciones al servidor principal
+            if (reply->operation() == QNetworkAccessManager::PostOperation)
+                _pendingRequests.append(reply->request());
         }
 
         _networkError = reply->error();
+    }
+
+    void NetworkManager::retryFailedRequests()
+    {
+        qDebug("~~~~> Retrying failed requests ...");
+
+        while (!_pendingRequests.isEmpty())
+        {
+            QNetworkRequest request(_pendingRequests.takeFirst());
+            QByteArray postData(request
+                                .attribute((QNetworkRequest::Attribute)AttrPostData)
+                                .toByteArray());
+
+            this->post(request, postData);
+        }
     }
 
 }
