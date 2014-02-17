@@ -23,7 +23,6 @@ namespace Gateway
         DeviceManager::initialize();
         WatcherManager::initialize();
 
-
         RemoteStorage *storage = RemoteStorage::instance();
         DeviceManager *devManager = DeviceManager::instance();
 
@@ -33,12 +32,9 @@ namespace Gateway
         _lastId = -1;
         qDebug("Fetching pending messages from main server ...");
         MessageList pendingMessages(storage->pendingMessages());
-        if (!pendingMessages.empty())
+        foreach (IMessage *message, pendingMessages)
         {
-            foreach (IMessage *message, pendingMessages)
-            {
-                redirectMessage(message);
-            }
+            redirectMessage(message);
         }
 
         _watcher = WatcherManager::instance()->activeWatcher();

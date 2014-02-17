@@ -9,6 +9,7 @@
 
 #include <QByteArray>
 #include <QEventLoop>
+#include <QTimer>
 
 #include <QVariantMap>
 #include <qjson/parser.h>
@@ -92,7 +93,6 @@ namespace Gateway
     MessageList RemoteStorage::pendingMessages()
     {
         MessageList result;
-        static int retries = _config->value("http_retries").toInt();
 
         QUrl urlRequest(_config->value("http_url") + "sms/");
         {
@@ -102,54 +102,45 @@ namespace Gateway
             urlRequest.addQueryItem(QString("page_size"), QString::number(1000));
         }
 
-        QNetworkReply *reply = _networkManager.get(QNetworkRequest(urlRequest));
-        QEventLoop loop;
+        QNetworkReply *reply;
+
+        forever
         {
-            connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-
-            _waitingResponse = true;
-            loop.exec();
-            _waitingResponse = false;
-        }
-
-        if (!reply->error())
-        {
-            QByteArray response (reply->readAll());
-            QJson::Parser parser;
-
-            QVariantMap responseMap = parser.parse(response).toMap();
-
-            if (responseMap.contains("sms"))
+            reply = _networkManager.get(QNetworkRequest(urlRequest));
+            if (_networkManager.waitForResponse())
             {
-                QVariantList messageList(responseMap.value("sms").toList());
-                foreach (QVariant value, messageList)
-                {
-                    QVariantMap sms(value.toMap());
-                    {
-                        qlonglong id = sms.value("id").toLongLong();
-                        QString from = sms.value("from").toString();
-                        QString to = sms.value("to").toString();
-                        QString body = sms.value("body").toString();
-
-                        result.append(new MessageInfo(from, to, body, id));
-                    }
-                }
-            }
-
-            retries = _config->value("Main/http_retries").toInt();
-        }
-        else
-        {
-            qWarning("Error fetching pending messages ... retrying ...");
-
-            if (retries--)
-            {
-                pendingMessages();
+                break;
             }
             else
             {
-                retries = _config->value("http_retries").toInt();
-                qWarning("Network error, could not stablish connection with main server");
+                QEventLoop loop;
+                {
+                    QTimer::singleShot(60 * 1000, &loop, SLOT(quit()));
+                    loop.exec();
+                }
+            }
+        }
+
+        // Finally we get a response
+        QByteArray response (reply->readAll());
+        QJson::Parser parser;
+
+        QVariantMap responseMap = parser.parse(response).toMap();
+
+        if (responseMap.contains("sms"))
+        {
+            QVariantList messageList(responseMap.value("sms").toList());
+            foreach (QVariant value, messageList)
+            {
+                QVariantMap sms(value.toMap());
+                {
+                    qlonglong id = sms.value("id").toLongLong();
+                    QString from = sms.value("from").toString();
+                    QString to = sms.value("to").toString();
+                    QString body = sms.value("body").toString();
+
+                    result.append(new MessageInfo(from, to, body, id));
+                }
             }
         }
 
@@ -161,27 +152,9 @@ namespace Gateway
         if (_waitingResponse)
             return;
 
-        static int retries = _config->value("http_retries").toInt();
-
         if (!reply->error())
         {
             qDebug() << reply->readAll();
-
-            retries = _config->value("http_retries").toInt();
-        }
-        else
-        {
-            qWarning("Request error: %s, retrying ....", qPrintable(reply->errorString()));
-
-            if (retries--)
-            {
-                _networkManager.retry(reply->request());
-            }
-            else
-            {
-                retries = _config->value("http_retries").toInt();
-                qWarning("Network error, could not stablish connection with main server");
-            }
         }
     }
 

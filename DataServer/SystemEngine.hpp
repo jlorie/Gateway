@@ -6,6 +6,8 @@
 #include <include/IWatcher.hpp>
 #include <DeviceManager.hpp>
 
+#include <common/CommonErrors.hpp>
+
 namespace Gateway
 {
     class SystemEngine : public QObject

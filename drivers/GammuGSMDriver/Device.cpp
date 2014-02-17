@@ -96,9 +96,9 @@ namespace Driver
             qWarning("Could not connet to device, %s", GSM_ErrorString(error));
         else
         {
-            error = GSM_SetFastSMSSending(_stateMachine, TRUE);
-            if (error != ERR_NONE)
-                qDebug("Error setting fast sms sending, %s", GSM_ErrorString(error));
+//            error = GSM_SetFastSMSSending(_stateMachine, TRUE);
+//            if (error != ERR_NONE)
+//                qDebug("Error setting fast sms sending, %s", GSM_ErrorString(error));
         }
 
         return result;
