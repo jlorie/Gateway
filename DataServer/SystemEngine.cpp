@@ -46,8 +46,6 @@ namespace Gateway
 
             _watcher->start();
         }
-
-        storage->dispatchMessage(new MessageInfo("bla", "blabla", "prueba"));
     }
 
     void SystemEngine::redirectMessage(const IMessage *message)
