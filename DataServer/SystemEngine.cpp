@@ -30,7 +30,7 @@ namespace Gateway
                 storage, SLOT(dispatchMessage(const IMessage*)));
 
         _lastId = -1;
-        qDebug("Fetching pending messages from main server ...");
+        qDebug(">> Fetching pending messages from main server ...");
         MessageList pendingMessages(storage->pendingMessages());
         foreach (IMessage *message, pendingMessages)
         {
