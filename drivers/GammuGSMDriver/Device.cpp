@@ -104,6 +104,7 @@ namespace Driver
         return result;
     }
 
+
     void send_sms_callback (GSM_StateMachine *sm, int status, int MessageReference, void * user_data)
     {
         Q_UNUSED(sm);
@@ -227,9 +228,10 @@ namespace Driver
                 {
                     for (int i = 0; i < sms.Number; i++)
                     {
-                        emit newMessageReceived(
-                                    new MessageInfo(QString(DecodeUnicodeConsole(sms.SMS[i].Number)),_number,
-                                                    QString(DecodeUnicodeConsole(sms.SMS[i].Text))));
+                        if (!sms.SMS[i].InboxFolder)
+                            continue;
+
+                        handleMessage(sms.SMS[i]);
 
                         sms.SMS[i].Folder = 0;
                         error = GSM_DeleteSMS(_stateMachine, &sms.SMS[i]);
@@ -251,5 +253,39 @@ namespace Driver
             start = false;
         }
     }
+
+    void Device::handleMessage(const GSM_SMSMessage &message)
+    {
+        // getting messageId
+        int messageId;
+        {
+            messageId = message.UDH.ID8bit;
+            if (messageId < 0)
+                messageId = message.UDH.ID16bit;
+        }
+
+        MessageBuilder *builder(0);
+        if (!_incompleteMessages.contains(messageId))
+        {
+             builder = new MessageBuilder(message, _number);
+             _incompleteMessages.insert(messageId, builder);
+        }
+        else
+        {
+            builder = _incompleteMessages.value(messageId);
+            builder->appendPart(message);
+        }
+
+        if (builder->isReady())
+        {
+            MessageInfo *info = builder->message();
+            if (info)
+                emit newMessageReceived(info);
+
+            _incompleteMessages.take(messageId);
+            delete builder;
+        }
+    }
+
 }
 }

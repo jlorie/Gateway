@@ -42,7 +42,6 @@ HEADERS  += DeviceManager.hpp \
     include/DataStructures/MainInfo.hpp \
     WatcherManager.hpp \
     include/DataStructures/NumberInfo.hpp \
-    common/NetworkManager.hpp \
-    common/CommonErrors.hpp
+    common/NetworkManager.hpp
 
 unix|win32: LIBS += -lqjson

@@ -5,7 +5,6 @@
 #include <include/DataStructures/MainInfo.hpp>
 #include <include/DataStructures/MessageList.hpp>
 #include <common/NetworkManager.hpp>
-#include <common/CommonErrors.hpp>
 
 #include <QObject>
 #include <QMap>

@@ -5,12 +5,16 @@
 #include <include/IDevice.hpp>
 #include <include/DataStructures/DeviceInfo.hpp>
 
+#include "MessageBuilder.hpp"
+
 #include <QTimer>
 
 namespace Gateway
 {
 namespace Driver
 {
+    typedef QMap<int, MessageBuilder *> MessageBuilders;
+
     class Device : public IDevice
     {
         Q_OBJECT
@@ -30,6 +34,7 @@ namespace Driver
         private:
             void configure();
             bool connect();
+            void handleMessage(const GSM_SMSMessage &message);
 
         private:
             QString _serialPort;
@@ -41,6 +46,7 @@ namespace Driver
             bool _shutdown;
 
             QTimer _timer;
+            MessageBuilders _incompleteMessages;
     };
 
 }
