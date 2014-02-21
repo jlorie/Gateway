@@ -15,7 +15,7 @@ namespace Driver
         int size;
         {
             size = gammuMessage.UDH.AllParts;
-            if (size < 0)
+            if (size <= 0)
                 size = 1;
         }
 
@@ -30,6 +30,8 @@ namespace Driver
             index = message.UDH.PartNumber;
             if (index > 0)
                 index --;
+            else
+                index = 0;
         }
 
         _parts[index]= QString(DecodeUnicodeConsole(message.Text));

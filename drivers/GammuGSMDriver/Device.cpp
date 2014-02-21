@@ -70,41 +70,6 @@ namespace Driver
         return QString(IMEI);
     }
 
-    void Device::configure()
-    {
-        cfg = GSM_GetConfig(_stateMachine, 0);
-
-        /*
-         * Set configuration, first freeing old values.
-         */
-        free(cfg->Device);
-        cfg->Device = strdup(_serialPort.toStdString().c_str());
-        free(cfg->Connection);
-        cfg->Connection = strdup("at");
-
-        /* We have one valid configuration */
-        GSM_SetConfigNum(_stateMachine, 1);
-
-    }
-
-    bool Device::connect()
-    {
-        GSM_Error error(GSM_InitConnection(_stateMachine, 1));
-        bool result(ERR_NONE == error);
-
-        if (!result)
-            qWarning("Could not connet to device, %s", GSM_ErrorString(error));
-        else
-        {
-//            error = GSM_SetFastSMSSending(_stateMachine, TRUE);
-//            if (error != ERR_NONE)
-//                qDebug("Error setting fast sms sending, %s", GSM_ErrorString(error));
-        }
-
-        return result;
-    }
-
-
     void send_sms_callback (GSM_StateMachine *sm, int status, int MessageReference, void * user_data)
     {
         Q_UNUSED(sm);
@@ -121,61 +86,122 @@ namespace Driver
         }
     }
 
+    void Device::configure()
+    {
+        cfg = GSM_GetConfig(_stateMachine, 0);
+
+        /*
+         * Set configuration, first freeing old values.
+         */
+        free(cfg->Device);
+        cfg->Device = strdup(_serialPort.toStdString().c_str());
+        free(cfg->Connection);
+        cfg->Connection = strdup("at");
+
+        /* We have one valid configuration */
+        GSM_SetConfigNum(_stateMachine, 1);
+    }
+
+    bool Device::connect()
+    {
+        GSM_Error error(GSM_InitConnection(_stateMachine, 1));
+        bool result(ERR_NONE == error);
+
+        if (!result)
+            qWarning("Could not connet to device, %s", GSM_ErrorString(error));
+        else
+        {
+            /* Set callback for message sending */
+            /* This needs to be done after initiating connection */
+            GSM_SetSendSMSStatusCallback(_stateMachine, send_sms_callback, NULL);
+
+            /* We need to know SMSC number */
+            PhoneSMSC.Location = 1;
+            GSM_Error error = GSM_GetSMSC(_stateMachine, &PhoneSMSC);
+
+            if (error != ERR_NONE)
+            {
+                qWarning("Error getting SMS Center %s", GSM_ErrorString(error));
+            }
+
+            error = GSM_SetFastSMSSending(_stateMachine, TRUE);
+            if (error != ERR_NONE)
+                qDebug("Error setting fast sms sending, %s", GSM_ErrorString(error));
+        }
+
+        return result;
+    }
+
     void Device::sendMessage(const IMessage *message)
     {
-        GSM_SMSMessage sms;
-        GSM_SMSC PhoneSMSC;
+        GSM_MultiSMSMessage SMS;
+        GSM_MultiPartSMSInfo SMSInfo;
+        unsigned char message_unicode[(message->body().length() + 1) * 2];
 
-        /* Cleanup the structure */
-        memset(&sms, 0, sizeof(sms));
-        EncodeUnicode(sms.Text, message->body().toStdString().c_str(), message->body().length());
-        EncodeUnicode(sms.Number, message->to().toStdString().c_str(), message->to().length());
-
-        /* We want to submit message */
-        sms.PDU = SMS_Submit;
-        /* No UDH, just a plain message */
-        sms.UDH.Type = UDH_NoUDH;
-        /* We used default coding for text */
-        sms.Coding = SMS_Coding_Default_No_Compression;
+        /*
+         * Fill in SMS info structure which will be used to generate
+         * messages.
+         */
+        GSM_ClearMultiPartSMSInfo(&SMSInfo);
         /* Class 1 message (normal) */
-        sms.Class = 1;        
+        SMSInfo.Class = 1;
+        /* Message will be consist of one part */
+        SMSInfo.EntriesNum = 1;
+        /* No unicode */
+        SMSInfo.UnicodeCoding = FALSE;
+        /* The part has type long text */
+        SMSInfo.Entries[0].ID = SMS_ConcatenatedTextLong;
+        /* Encode message text */
+        EncodeUnicode(message_unicode, qPrintable(message->body()), message->body().length());
+        SMSInfo.Entries[0].Buffer = message_unicode;
 
-        /* Set callback for message sending */
-        /* This needs to be done after initiating connection */
-        GSM_SetSendSMSStatusCallback(_stateMachine, send_sms_callback, NULL);
-
-        /* We need to know SMSC number */
-        PhoneSMSC.Location = 1;
-        GSM_Error error = GSM_GetSMSC(_stateMachine, &PhoneSMSC);
-        /* Set SMSC number in message */
-        CopyUnicodeString(sms.SMSC.Number, PhoneSMSC.Number);
-
-        /* Send message */
-        error = GSM_SendSMS(_stateMachine, &sms);
+        /* Encode message into PDU parts */
+        error = GSM_EncodeMultiPartSMS(NULL, &SMSInfo, &SMS);
         if (error != ERR_NONE)
         {
-            emit messageStatusChanged(message->id(), stFailed);
-            qWarning("Error sending message, %s", GSM_ErrorString(error));
+            qWarning ("%s", GSM_ErrorString(error));
+            return;
         }
 
-        sms_send_status = ERR_TIMEOUT;
-
-        /* Wait for network reply */
-        while (!_shutdown)
+        for (int i = 0; i < SMS.Number; i++)
         {
-            GSM_ReadDevice(_stateMachine, TRUE);
-            if (sms_send_status == ERR_NONE)
+            /* Set SMSC number in message */
+            CopyUnicodeString(SMS.SMS[i].SMSC.Number, PhoneSMSC.Number);
+
+            /* Prepare message */
+            /* Encode recipient number */
+            EncodeUnicode(SMS.SMS[i].Number, qPrintable(message->to()), message->to().length());
+            /* We want to submit message */
+            SMS.SMS[i].PDU = SMS_Submit;
+
+            sms_send_status = ERR_TIMEOUT;
+
+            /* Send message */
+            error = GSM_SendSMS(_stateMachine, &SMS.SMS[i]);
+            if (error != ERR_NONE)
             {
-                emit messageStatusChanged(message->id(), stSent);
-                break;
+                qWarning("Error sending message %s", GSM_ErrorString(error));
+                return;
             }
-            if (sms_send_status != ERR_TIMEOUT)
+
+            /* Wait for network reply */
+            while (!_shutdown)
             {
-                emit messageStatusChanged(message->id(), stFailed);
-                break;
+                GSM_ReadDevice(_stateMachine, TRUE);
+                if (sms_send_status == ERR_NONE)
+                {
+                    if ((i + 1) == SMS.Number)
+                        emit messageStatusChanged(message->id(), stSent);
+
+                    break;
+                }
+                if (sms_send_status != ERR_TIMEOUT)
+                {
+                    emit messageStatusChanged(message->id(), stFailed);
+                    return;
+                }
             }
         }
-
     }
 
     void Device::checkForNewMessage()

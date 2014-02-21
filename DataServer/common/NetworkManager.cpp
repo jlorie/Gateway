@@ -49,6 +49,11 @@ namespace Gateway
             _retries = defaultRetries;
         }
         else
+        if (reply->error() >= 201 && reply->error() <= 299) //Content error
+        {
+            qWarning("Server error %s ... discarding request ...", qPrintable(reply->errorString()));
+        }
+        else
         if (--_retries)
         {
             qWarning("Request error %s ... retrying ...", qPrintable(reply->errorString()));
@@ -75,8 +80,7 @@ namespace Gateway
         }
         else
         {
-            qWarning("Request error %s ... retrying ...", qPrintable(reply->errorString()));
-            qWarning("Could not stablish connection with main server");
+            qWarning("Could not stablish connection with main server... %s", qPrintable(reply->errorString()));
             QTimer::singleShot(60 * defaultRetryTimeOut, this, SLOT(retryFailedRequests()));
 
             if (_loop.isRunning())

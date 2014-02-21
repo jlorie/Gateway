@@ -40,13 +40,16 @@ namespace Driver
             QString _serialPort;
             QString _number;
 
+            QTimer _timer;
+            MessageBuilders _incompleteMessages;
+
             GSM_StateMachine *_stateMachine;
             GSM_Config *cfg;
             GSM_Error error;
-            bool _shutdown;
 
-            QTimer _timer;
-            MessageBuilders _incompleteMessages;
+            GSM_SMSC PhoneSMSC;
+
+            bool _shutdown;
     };
 
 }

@@ -46,6 +46,8 @@ namespace Gateway
 
             _watcher->start();
         }
+
+//        redirectMessage(new MessageInfo("+584140937970", "+584120884437", "Very long example Gammu message to show how to construct contatenated messages using libGammu. Very long example Gammu message to show how to construct contatenated messages using libGammu."));
     }
 
     void SystemEngine::redirectMessage(const IMessage *message)
