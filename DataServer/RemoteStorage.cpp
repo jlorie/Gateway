@@ -19,7 +19,7 @@
 namespace Gateway
 {
 
-    const uint TimeOut = 5000;
+    const uint TimeOut = 1000;
 
     RemoteStorage *RemoteStorage::_instance = 0;
 

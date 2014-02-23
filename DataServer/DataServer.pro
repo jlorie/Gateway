@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     RemoteStorage.cpp \
     SystemEngine.cpp \
     WatcherManager.cpp \
-    common/NetworkManager.cpp
+    network/NetworkManager.cpp \
+    network/PendingRequestList.cpp
 
 HEADERS  += DeviceManager.hpp \
     include/IDevice.hpp \
@@ -42,6 +43,7 @@ HEADERS  += DeviceManager.hpp \
     include/DataStructures/MainInfo.hpp \
     WatcherManager.hpp \
     include/DataStructures/NumberInfo.hpp \
-    common/NetworkManager.hpp
+    network/NetworkManager.hpp \
+    network/PendingRequestList.hpp
 
 unix|win32: LIBS += -lqjson

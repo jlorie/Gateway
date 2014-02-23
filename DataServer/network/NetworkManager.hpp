@@ -1,6 +1,8 @@
 #ifndef NETWORKMANAGER_HPP
 #define NETWORKMANAGER_HPP
 
+#include "PendingRequestList.hpp"
+
 #include <QObject>
 #include <QMap>
 #include <QEventLoop>
@@ -11,8 +13,6 @@
 
 namespace Gateway
 {
-    typedef QList<QNetworkRequest> PendingRequests;
-
     class NetworkManager: public QObject
     {
         Q_OBJECT
@@ -38,7 +38,7 @@ namespace Gateway
 
     private:
         QNetworkAccessManager _manager;
-        PendingRequests _pendingRequests;
+        PendingRequestList _pendingRequests;
         QEventLoop _loop;
 
         uint _retries;

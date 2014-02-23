@@ -1,11 +1,16 @@
 #include "NetworkManager.hpp"
 
+#include <SystemConfig.hpp>
+#include <QCryptographicHash>
+
 #include <QTimer>
+#include <QFile>
+#include <QDir>
 
 namespace Gateway
 {
     const uint defaultRetries = 3;
-    const uint defaultRetryTimeOut = 300;
+    const uint defaultRetryTimeOut = 3000;
 
     NetworkManager::NetworkManager(QObject *parent)
         :QObject(parent)
@@ -17,6 +22,9 @@ namespace Gateway
 
         _retries = defaultRetries;
         _networkError = QNetworkReply::NoError;
+
+        if (!_pendingRequests.isEmpty())
+            retryFailedRequests();
     }
 
     QNetworkReply *NetworkManager::post(const QNetworkRequest &request, const QByteArray &postData)
@@ -81,7 +89,6 @@ namespace Gateway
         else
         {
             qWarning("Could not stablish connection with main server... %s", qPrintable(reply->errorString()));
-            QTimer::singleShot(60 * defaultRetryTimeOut, this, SLOT(retryFailedRequests()));
 
             if (_loop.isRunning())
                 _loop.quit();
@@ -90,7 +97,9 @@ namespace Gateway
 
             // Solo se guardan como pendientes las notifiaciones al servidor principal
             if (reply->operation() == QNetworkAccessManager::PostOperation)
-                _pendingRequests.append(reply->request());
+                _pendingRequests.enqueue(reply->request());
+
+            QTimer::singleShot(60 * defaultRetryTimeOut, this, SLOT(retryFailedRequests()));
         }
 
         _networkError = reply->error();
@@ -98,11 +107,14 @@ namespace Gateway
 
     void NetworkManager::retryFailedRequests()
     {
+        if (_pendingRequests.isEmpty())
+            return;
+
         qDebug("~~~~> Retrying failed requests ...");
 
         while (!_pendingRequests.isEmpty())
         {
-            QNetworkRequest request(_pendingRequests.takeFirst());
+            QNetworkRequest request(_pendingRequests.dequeue());
             QByteArray postData(request
                                 .attribute((QNetworkRequest::Attribute)AttrPostData)
                                 .toByteArray());
@@ -110,5 +122,4 @@ namespace Gateway
             this->post(request, postData);
         }
     }
-
 }
