@@ -3,6 +3,8 @@
 #include "Device.hpp"
 #include <signal.h>
 
+#include <QEventLoop>
+
 namespace Gateway
 {
 namespace Driver
@@ -163,7 +165,8 @@ namespace Driver
             return;
         }
 
-        for (int i = 0; i < SMS.Number; i++)
+        bool fail(false);
+        for (int i = 0; i < SMS.Number && !fail; i++)
         {
             /* Set SMSC number in message */
             CopyUnicodeString(SMS.SMS[i].SMSC.Number, PhoneSMSC.Number);
@@ -185,15 +188,16 @@ namespace Driver
             }
 
             /* Wait for network reply */
-            while (!_shutdown)
+            forever
             {
+//                QTimer::singleShot(10 * 1000 /*10s*/, &loop, SLOT(quit()));
+
                 GSM_ReadDevice(_stateMachine, TRUE);
                 if (sms_send_status == ERR_NONE)
                 {
                     if ((i + 1) == SMS.Number)
                     {
                         emit messageStatusChanged(message->id(), stSent);
-                        qDebug("---------> Mensaje enviado");
                     }
 
                     break;
@@ -201,8 +205,7 @@ namespace Driver
                 if (sms_send_status != ERR_TIMEOUT)
                 {
                     emit messageStatusChanged(message->id(), stFailed);
-                    qDebug("---------> Mensaje fallido");
-                    return;
+                    fail = true;
                 }
             }
         }

@@ -48,8 +48,6 @@ namespace Driver
             GSM_Error error;
 
             GSM_SMSC PhoneSMSC;
-
-            bool _shutdown;
     };
 
 }
