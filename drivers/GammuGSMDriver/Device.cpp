@@ -191,13 +191,17 @@ namespace Driver
                 if (sms_send_status == ERR_NONE)
                 {
                     if ((i + 1) == SMS.Number)
+                    {
                         emit messageStatusChanged(message->id(), stSent);
+                        qDebug("---------> Mensaje enviado");
+                    }
 
                     break;
                 }
                 if (sms_send_status != ERR_TIMEOUT)
                 {
                     emit messageStatusChanged(message->id(), stFailed);
+                    qDebug("---------> Mensaje fallido");
                     return;
                 }
             }
