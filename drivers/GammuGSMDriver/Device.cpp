@@ -3,8 +3,6 @@
 #include "Device.hpp"
 #include <signal.h>
 
-#include <QEventLoop>
-
 namespace Gateway
 {
 namespace Driver
@@ -113,11 +111,8 @@ namespace Driver
             qWarning("Could not connet to device, %s", GSM_ErrorString(error));
         else
         {
-            /* Set callback for message sending */
-            /* This needs to be done after initiating connection */
             GSM_SetSendSMSStatusCallback(_stateMachine, send_sms_callback, NULL);
 
-            /* We need to know SMSC number */
             PhoneSMSC.Location = 1;
             GSM_Error error = GSM_GetSMSC(_stateMachine, &PhoneSMSC);
 
@@ -140,24 +135,14 @@ namespace Driver
         GSM_MultiPartSMSInfo SMSInfo;
         unsigned char message_unicode[(message->body().length() + 1) * 2];
 
-        /*
-         * Fill in SMS info structure which will be used to generate
-         * messages.
-         */
         GSM_ClearMultiPartSMSInfo(&SMSInfo);
-        /* Class 1 message (normal) */
         SMSInfo.Class = 1;
-        /* Message will be consist of one part */
         SMSInfo.EntriesNum = 1;
-        /* No unicode */
         SMSInfo.UnicodeCoding = FALSE;
-        /* The part has type long text */
         SMSInfo.Entries[0].ID = SMS_ConcatenatedTextLong;
-        /* Encode message text */
         EncodeUnicode(message_unicode, qPrintable(message->body()), message->body().length());
         SMSInfo.Entries[0].Buffer = message_unicode;
 
-        /* Encode message into PDU parts */
         error = GSM_EncodeMultiPartSMS(NULL, &SMSInfo, &SMS);
         if (error != ERR_NONE)
         {
@@ -168,18 +153,13 @@ namespace Driver
         bool fail(false);
         for (int i = 0; i < SMS.Number && !fail; i++)
         {
-            /* Set SMSC number in message */
             CopyUnicodeString(SMS.SMS[i].SMSC.Number, PhoneSMSC.Number);
 
-            /* Prepare message */
-            /* Encode recipient number */
             EncodeUnicode(SMS.SMS[i].Number, qPrintable(message->to()), message->to().length());
-            /* We want to submit message */
             SMS.SMS[i].PDU = SMS_Submit;
 
             sms_send_status = ERR_TIMEOUT;
 
-            /* Send message */
             error = GSM_SendSMS(_stateMachine, &SMS.SMS[i]);
             if (error != ERR_NONE)
             {
@@ -190,8 +170,6 @@ namespace Driver
             /* Wait for network reply */
             forever
             {
-//                QTimer::singleShot(10 * 1000 /*10s*/, &loop, SLOT(quit()));
-
                 GSM_ReadDevice(_stateMachine, TRUE);
                 if (sms_send_status == ERR_NONE)
                 {
@@ -287,6 +265,21 @@ namespace Driver
         }
     }
 
+    void Device::discardMultiPart()
+    {
+        MultiPart *multiPart = qobject_cast<MultiPart *>(sender());
+
+        foreach (MessageInfo *info, multiPart->parts())
+        {
+            emit newMessageReceived(info);
+        }
+
+        //remove from incompleteMessages
+        uint messageId = multiPart->messageId();
+        _incompleteMessages.take(messageId);
+
+    }
+
     void Device::handleMessage(const GSM_SMSMessage &message)
     {
         // getting messageId
@@ -297,26 +290,27 @@ namespace Driver
                 messageId = message.UDH.ID16bit;
         }
 
-        MessageBuilder *builder(0);
+        MultiPart *multiPart(0);
         if (!_incompleteMessages.contains(messageId))
         {
-             builder = new MessageBuilder(message, _number);
-             _incompleteMessages.insert(messageId, builder);
+             multiPart = new MultiPart(messageId, message, _number);
+             _incompleteMessages.insert(messageId, multiPart);
+             QObject::connect(multiPart, SIGNAL(timeout()), this, SLOT(discardMultiPart()));
         }
         else
         {
-            builder = _incompleteMessages.value(messageId);
-            builder->appendPart(message);
+            multiPart = _incompleteMessages.value(messageId);
+            multiPart->appendPart(message);
         }
 
-        if (builder->isReady())
+        if (multiPart->isReady())
         {
-            MessageInfo *info = builder->message();
+            MessageInfo *info = multiPart->message();
             if (info)
                 emit newMessageReceived(info);
 
             _incompleteMessages.take(messageId);
-            delete builder;
+            delete multiPart;
         }
     }
 

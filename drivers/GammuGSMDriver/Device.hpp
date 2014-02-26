@@ -5,7 +5,7 @@
 #include <include/IDevice.hpp>
 #include <include/DataStructures/DeviceInfo.hpp>
 
-#include "MessageBuilder.hpp"
+#include "MultiPart.hpp"
 
 #include <QTimer>
 
@@ -13,7 +13,7 @@ namespace Gateway
 {
 namespace Driver
 {
-    typedef QMap<int, MessageBuilder *> MessageBuilders;
+    typedef QMap<int, MultiPart *> MultiPartMap;
 
     class Device : public IDevice
     {
@@ -30,6 +30,7 @@ namespace Driver
         protected slots:
             void checkForNewMessage();
             void discardMessages();
+            void discardMultiPart();
 
         private:
             void configure();
@@ -41,7 +42,7 @@ namespace Driver
             QString _number;
 
             QTimer _timer;
-            MessageBuilders _incompleteMessages;
+            MultiPartMap _incompleteMessages;
 
             GSM_StateMachine *_stateMachine;
             GSM_Config *cfg;
