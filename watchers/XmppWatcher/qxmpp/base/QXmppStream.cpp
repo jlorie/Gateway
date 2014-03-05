@@ -72,6 +72,8 @@ QXmppStream::QXmppStream(QObject *parent)
         qsrand(QTime(0,0,0).msecsTo(QTime::currentTime()) ^ reinterpret_cast<quintptr>(this));
         randomSeeded = true;
     }
+
+    _isSslConnectionEnabled = false;
 }
 
 /// Destroys a base XMPP stream.
@@ -178,7 +180,12 @@ void QXmppStream::setSocket(QSslSocket *socket)
                     this, SLOT(_q_socketReadyRead()));
     Q_ASSERT(check);
 
-//    _isStarting = false;
+    //    _isStarting = false;
+}
+
+void QXmppStream::setSslConnectionEnabled(bool value)
+{
+    _isSslConnectionEnabled = value;
 }
 
 void QXmppStream::_q_socketConnected()
@@ -187,13 +194,19 @@ void QXmppStream::_q_socketConnected()
         d->socket->peerAddress().toString(),
         QString::number(d->socket->peerPort())));
 
+    if (_isSslConnectionEnabled)
+    {
+        qDebug("Starting Client Encryption");
+        socket()->startClientEncryption();
+    }
+    else
         handleStart();
 }
 
 void QXmppStream::_q_socketEncrypted()
 {
     debug("Socket encrypted");
-//    handleStart(); FIXME corregir para las conexiones que no sea SSL
+    handleStart();
 }
 
 void QXmppStream::_q_socketError(QAbstractSocket::SocketError socketError)

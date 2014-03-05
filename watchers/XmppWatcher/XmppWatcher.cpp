@@ -52,8 +52,6 @@ namespace Watcher
 
         if (!body.isEmpty())
         {
-qDebug("---> Message received");
-
             QJson::Parser parser;
             QVariantMap response = parser.parse(body.toLatin1()).toMap();
 

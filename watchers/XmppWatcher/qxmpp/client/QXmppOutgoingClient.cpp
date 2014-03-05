@@ -125,16 +125,17 @@ void QXmppOutgoingClientPrivate::connectToHost(const QString &host, quint16 port
     q->socket()->setPeerVerifyName(config.domain());
 #endif
 
-    // connect to host
     const QXmppConfiguration::StreamSecurityMode localSecurity = q->configuration().streamSecurityMode();
     if (localSecurity == QXmppConfiguration::SSLOnly) {
        if (!q->socket()->supportsSsl()) {
           q->warning("You asked for an SSLOnly connection, but we did not detect SSL support. The connection will probably fail. Sorry!");
        }
-       q->socket()->connectToHostEncrypted(host, port);
-    } else {
-       q->socket()->connectToHost(host, port);
+
+       q->setSslConnectionEnabled(true);
     }
+
+    // connect to host
+    q->socket()->connectToHost(host, port);
 }
 
 /// Constructs an outgoing client stream.

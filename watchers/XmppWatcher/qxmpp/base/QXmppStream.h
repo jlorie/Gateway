@@ -61,6 +61,8 @@ protected:
     QSslSocket *socket() const;
     void setSocket(QSslSocket *socket);
 
+    void setSslConnectionEnabled(bool value);
+
     // Overridable methods
     virtual void handleStart();
 
@@ -86,6 +88,7 @@ private slots:
 
 private:
     QXmppStreamPrivate * const d;
+    bool _isSslConnectionEnabled;
 };
 
 #endif // QXMPPSTREAM_H
