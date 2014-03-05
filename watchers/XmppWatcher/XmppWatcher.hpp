@@ -15,7 +15,7 @@ namespace Watcher
     {
         Q_OBJECT
     public:
-        explicit XmppWatcher(WatcherInfo *info);
+        explicit XmppWatcher(const WatcherInfo &info);
 
         void start();
         void stop();
@@ -25,7 +25,7 @@ namespace Watcher
         void onConnect();
 
     private:
-        WatcherInfo *_info;
+        WatcherInfo _info;
         QXmppClient _xmppClient;
 
     };

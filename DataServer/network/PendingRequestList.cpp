@@ -13,11 +13,18 @@ namespace Gateway
     PendingRequestList::PendingRequestList()
     {
         QString path = SystemConfig::instance()
-                ->value("Main/pending_request_path", "/var/gateway/pending_requests/")
+                ->value("pending_request_path", "/var/gateway/pending_requests/")
                 .toString();
 
-        _directory.setCurrent(path);
-        load();
+        if (_directory.setCurrent(path))
+            load();
+        else
+        {
+            if (_directory.mkpath(path))
+                _directory.setCurrent(path);
+            else
+                qWarning("Could not access to pending request directory");
+        }
     }
 
     PendingRequestList::~PendingRequestList()

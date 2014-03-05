@@ -4,7 +4,7 @@ namespace Gateway
 {
 namespace Watcher
 {
-    IWatcher *AMQPWactherProvider::newWatcher(WatcherInfo *info)
+    IWatcher *AMQPWactherProvider::newWatcher(const WatcherInfo &info)
     {
         return new AMQPWatcher(info);
     }

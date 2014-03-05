@@ -20,7 +20,7 @@ namespace Watcher
     {
         Q_OBJECT
     public:
-        explicit HttpWatcher(WatcherInfo *info);
+        explicit HttpWatcher(const WatcherInfo &info);
 
         void start();
         void stop();
@@ -36,7 +36,7 @@ namespace Watcher
 
     private:
         QNetworkAccessManager _networkManager;
-        WatcherInfo *_info;
+        WatcherInfo _info;
 
         QTimer _pollingTimer;
         bool _waitingResponse;

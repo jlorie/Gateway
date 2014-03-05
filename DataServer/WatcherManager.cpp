@@ -40,17 +40,19 @@ namespace Gateway
         WatcherInfoList infoList = config->watchersInfo();
 
         //Find info for watcher_name
-        WatcherInfo *watcherInfo = 0;
-        foreach (WatcherInfo *info, infoList)
+        bool watcherFound(false);
+        WatcherInfo watcherInfo;
+        foreach (WatcherInfo info, infoList)
         {
-            if (info->value("watcher_name") == watcherName)
+            if (info.value("watcher_name") == watcherName)
             {
                 watcherInfo = info;
+                watcherFound = true;
                 break;
             }
         }
 
-        if (!watcherInfo)
+        if (!watcherFound)
         {
             qWarning("Not info found for %s", qPrintable(watcherName));
             return;
@@ -70,8 +72,7 @@ namespace Gateway
     WatcherManager::WatcherManager()
     {
         QString watcherName(SystemConfig::instance()
-                            ->mainInfo()
-                            ->value("watcher", "HttpWatcher"));
+                            ->value("watcher", "HttpWatcher").toString());
 
         registerWatcher();
         setWatcher(watcherName);
@@ -80,19 +81,19 @@ namespace Gateway
     void WatcherManager::registerWatcher()
     {
         SystemConfig *config = SystemConfig::instance();
-        qDebug("Registering watchers from %s", qPrintable(config->mainInfo()->value("lib_path")));
+        qDebug("Registering watchers from %s", qPrintable(config->value("lib_path").toString()));
 
         WatcherInfoList infoList = config->watchersInfo();
 
-        foreach (WatcherInfo *watcherInfo, infoList)
+        foreach (WatcherInfo watcherInfo, infoList)
         {
             QString fileName; // generating fileName
             {
-                fileName.append(config->mainInfo()->value("lib_path"));
+                fileName.append(config->value("lib_path").toString());
                 if (!fileName.endsWith('/'))
                     fileName.append("/");
 
-                fileName.append(QString("lib%1.so").arg(watcherInfo->value("watcher_name")));
+                fileName.append(QString("lib%1.so").arg(watcherInfo.value("watcher_name")));
             }
 
             QPluginLoader loader(fileName);

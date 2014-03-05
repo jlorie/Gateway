@@ -14,15 +14,15 @@ namespace Watcher
 {
     using QAMQP::Queue;
 
-    AMQPWatcher::AMQPWatcher(WatcherInfo *info)
+    AMQPWatcher::AMQPWatcher(const WatcherInfo &info)
     {
         _client = new QAMQP::Client(this);
         {
-            _client->setHost(info->value("amqp_host", "localhost"));
-            _client->setPort(info->value("amqp_port", "5672").toInt());
-            _client->setVirtualHost(info->value("amqp_vhost", "/"));
-            _client->setUser(info->value("amqp_user", "guest"));
-            _client->setPassword(info->value("amqp_password", "guest"));
+            _client->setHost(info.value("amqp_host", "localhost"));
+            _client->setPort(info.value("amqp_port", "5672").toInt());
+            _client->setVirtualHost(info.value("amqp_vhost", "/"));
+            _client->setUser(info.value("amqp_user", "guest"));
+            _client->setPassword(info.value("amqp_password", "guest"));
         }
         _client->open();
     }

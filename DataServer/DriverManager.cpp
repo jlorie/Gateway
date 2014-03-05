@@ -47,8 +47,7 @@ namespace Gateway
     DriverManager::DriverManager()
     {
         QString drivers_path = SystemConfig::instance()
-                ->mainInfo()
-                ->value("lib_path", "/usr/local/lib");
+                ->value("lib_path", "/usr/local/lib").toString();
 
         QDir driversDir(drivers_path);
         foreach (QString fileName, driversDir.entryList(QDir::Files))

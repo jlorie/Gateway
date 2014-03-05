@@ -35,7 +35,6 @@ namespace Gateway
     private:
         static RemoteStorage *_instance;
         NetworkManager _networkManager;
-        MainInfo *_config;
 
         bool _waitingResponse;
     };

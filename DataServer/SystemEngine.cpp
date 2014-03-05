@@ -98,17 +98,26 @@ namespace Gateway
 
     void SystemEngine::setProxy()
     {
-        SystemConfig *config = SystemConfig::instance();
+        ProxyInfo info = SystemConfig::instance()->proxyInfo();
 
-        if (config->value("Main/proxy_enabled").toInt() == 1)
+        if (info.value("proxy_enabled").toInt() == 1)
         {
-            QString hostName(config->value("Main/proxy_hostname").toString());
-            uint port(config->value("Main/proxy_port").toInt());
+            QString hostName(info.value("proxy_hostname"));
+            uint port(info.value("proxy_port").toInt());
+
+            QString username = (info.value("proxy_username"));
+            QString password = (info.value("proxy_password"));
 
             QNetworkProxy proxy;
             proxy.setType(QNetworkProxy::HttpProxy);
             proxy.setHostName(hostName);
             proxy.setPort(port);
+
+            if (!username.isEmpty())
+            {
+                proxy.setUser(username);
+                proxy.setPassword(password);
+            }
 
             QNetworkProxy::setApplicationProxy(proxy);
         }

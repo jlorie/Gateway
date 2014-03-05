@@ -12,7 +12,8 @@
 namespace Gateway
 {
     typedef QList<DeviceInfo> DeviceInfoList;
-    typedef QList<WatcherInfo *> WatcherInfoList;
+    typedef QList<WatcherInfo> WatcherInfoList;
+    typedef QMap<QString, QString> ProxyInfo;
 
     class SystemConfig : public QObject
     {
@@ -25,7 +26,7 @@ namespace Gateway
         DeviceInfoList devicesInfo() const;
         WatcherInfoList watchersInfo() const;
 
-        MainInfo *mainInfo() const;
+        ProxyInfo proxyInfo() const;
 
         QVariant value(const QString & key, const QVariant & defaultValue = QVariant()) const;
 
@@ -33,16 +34,8 @@ namespace Gateway
         SystemConfig(const QString &configFile);
         ~SystemConfig();
 
-        void loadSettings();
-
     private:
         static SystemConfig *_instance;
-
-        DeviceInfoList _devicesInfo;
-        WatcherInfoList _watchersInfo;
-
-        MainInfo *_mainInfo;
-
         QSettings *_settings;
     };
 }

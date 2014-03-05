@@ -18,7 +18,6 @@
 
 namespace Gateway
 {
-
     const uint TimeOut = 1000;
 
     RemoteStorage *RemoteStorage::_instance = 0;
@@ -53,7 +52,7 @@ namespace Gateway
 
         QNetworkRequest request;
         {
-            request.setUrl(QUrl(_config->value("http_url") + "sms/"));
+            request.setUrl(QUrl(SystemConfig::instance()->value("http_url").toString() + "sms/"));
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         }
 
@@ -71,12 +70,13 @@ namespace Gateway
     {
         qDebug(">> Changing message status %lld to %s", messageId, (status == stSent ? "\"sent\"" : "\"failed\""));
 
-        QString username(_config->value("http_username"));
-        QString password(_config->value("http_password"));
+        SystemConfig *config = SystemConfig::instance();
+        QString username = config->value("http_username").toString();
+        QString password = config->value("http_password").toString();
 
         QNetworkRequest request;
         {
-            request.setUrl(QUrl(QString(_config->value("http_url") + "sms/status/%1/%2")
+            request.setUrl(QUrl(QString(config->value("http_url").toString() + "sms/status/%1/%2")
                                 .arg(username, password)));
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         }
@@ -94,7 +94,7 @@ namespace Gateway
     {
         MessageList result;
 
-        QUrl urlRequest(_config->value("http_url") + "sms/");
+        QUrl urlRequest(SystemConfig::instance()->value("http_url").toString() + "sms/");
         {
             urlRequest.addQueryItem(QString("status"),QString("sending"));
 
@@ -163,14 +163,14 @@ namespace Gateway
     {
         Q_UNUSED(reply);
 
-        authenticator->setUser(_config->value("http_username"));
-        authenticator->setPassword(_config->value("http_password"));
+        SystemConfig *config = SystemConfig::instance();
+        authenticator->setUser(config->value("http_username").toString());
+        authenticator->setPassword(config->value("http_password").toString());
     }
 
     RemoteStorage::RemoteStorage()
     {
         _waitingResponse = false;
-        _config = SystemConfig::instance()->mainInfo();
 
         connect(&_networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(requestFinished(QNetworkReply*)));
         connect(&_networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),

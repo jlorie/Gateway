@@ -18,7 +18,7 @@ namespace Gateway
 {
 namespace Watcher
 {
-    HttpWatcher::HttpWatcher(WatcherInfo *info)
+    HttpWatcher::HttpWatcher(const WatcherInfo &info)
         :_info(info)
     {
         _waitingResponse = false;
@@ -36,7 +36,7 @@ namespace Watcher
     {
         poll(); //polling
         {
-            _pollingTimer.setInterval(_info->value("http_poll_interval", "5").toInt() * 1000);
+            _pollingTimer.setInterval(_info.value("http_poll_interval", "5").toInt() * 1000);
             _pollingTimer.start();
         }
     }
@@ -54,7 +54,7 @@ namespace Watcher
         else
             activateLowComsumption(false);
 
-        QUrl urlRequest(_info->value("http_url") + "sms/");
+        QUrl urlRequest(_info.value("http_url") + "sms/");
         {
             urlRequest.addQueryItem(QString("status"),QString("sending"));
             urlRequest.addQueryItem(QString("page"), QString::number(0));
@@ -107,8 +107,8 @@ namespace Watcher
     {
         Q_UNUSED(reply);
 
-        authenticator->setUser(_info->value("http_username", "guest"));
-        authenticator->setPassword(_info->value("http_password", "guest"));
+        authenticator->setUser(_info.value("http_username", "guest"));
+        authenticator->setPassword(_info.value("http_password", "guest"));
     }
 
     void HttpWatcher::activateLowComsumption(bool active)
@@ -124,7 +124,7 @@ namespace Watcher
         else
         {
             qDebug(">> Deactivating low network comsumption");
-            _pollingTimer.setInterval(_info->value("http_poll_interval", "5").toInt() * 1000);
+            _pollingTimer.setInterval(_info.value("http_poll_interval", "5").toInt() * 1000);
         }
 
         _lowComsumtionActive = active;

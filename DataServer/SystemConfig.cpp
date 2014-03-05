@@ -30,17 +30,69 @@ namespace Gateway
 
     DeviceInfoList SystemConfig::devicesInfo() const
     {
-        return _devicesInfo;
+        DeviceInfoList devicesInfo;
+
+        _settings->beginGroup(QString("Devices"));
+        {
+            foreach (QString group, _settings->childGroups())
+            {
+                DeviceInfo devInfo;
+                _settings->beginGroup(group);
+
+                foreach (QString key, _settings->allKeys())
+                {
+                    devInfo.insert(key, _settings->value(key).toString());
+                }
+
+                devicesInfo.append(devInfo);
+
+                _settings->endGroup();
+            }
+        }
+        _settings->endGroup();
+
+        return devicesInfo;
     }
 
     WatcherInfoList SystemConfig::watchersInfo() const
     {
+        WatcherInfoList _watchersInfo;
+
+        _settings->beginGroup(QString("Watchers"));
+        {
+            foreach (QString group, _settings->childGroups())
+            {
+                _settings->beginGroup(group);
+                {
+                    WatcherInfo watcher;
+                    foreach (QString key, _settings->allKeys())
+                    {
+                        watcher.insert(key, _settings->value(key).toString());
+                    }
+
+                    _watchersInfo.append(watcher);
+                }
+                _settings->endGroup();
+            }
+        }
+        _settings->endGroup();
+
         return _watchersInfo;
     }
 
-    MainInfo *SystemConfig::mainInfo() const
+    ProxyInfo SystemConfig::proxyInfo() const
     {
-        return _mainInfo;
+        ProxyInfo proxy;
+        _settings->beginGroup(QString("Proxy"));
+        {
+            foreach (QString key, _settings->allKeys())
+            {
+                proxy.insert(key, _settings->value(key).toString());
+            }
+        }
+        _settings->endGroup();
+
+        return proxy;
     }
 
     QVariant SystemConfig::value(const QString &key, const QVariant &defaultValue) const
@@ -54,62 +106,9 @@ namespace Gateway
             _settings = new QSettings("Cubania Team", "Gateway");
         else
             _settings = new QSettings(configFile, QSettings::IniFormat);
-
-        loadSettings();
     }
 
     SystemConfig::~SystemConfig()
     {
-    }
-
-    void SystemConfig::loadSettings()
-    {
-        _settings->beginGroup(QString("Devices"));
-        {
-            foreach (QString group, _settings->childGroups())
-            {
-                DeviceInfo devInfo;
-                _settings->beginGroup(group);
-
-                foreach (QString key, _settings->allKeys())
-                {
-                    devInfo.insert(key, _settings->value(key).toString());
-                }
-
-                _devicesInfo.append(devInfo);
-
-                _settings->endGroup();
-            }
-        }
-        _settings->endGroup();
-
-        _settings->beginGroup(QString("Watchers"));
-        {
-            foreach (QString group, _settings->childGroups())
-            {
-                _settings->beginGroup(group);
-                {
-                    WatcherInfo * watcher = new WatcherInfo;
-                    foreach (QString key, _settings->allKeys())
-                    {
-                        watcher->insert(key, _settings->value(key).toString());
-                    }
-
-                    _watchersInfo.append(watcher);
-                }
-                _settings->endGroup();
-            }
-        }
-        _settings->endGroup();
-
-        _settings->beginGroup(QString("Main"));
-        {
-            _mainInfo = new MainInfo;
-            foreach (QString key, _settings->allKeys())
-            {
-                _mainInfo->insert(key, _settings->value(key).toString());
-            }
-        }
-        _settings->endGroup();
     }
 }

@@ -12,7 +12,7 @@ namespace Gateway
 {
 namespace Watcher
 {
-    XmppWatcher::XmppWatcher(WatcherInfo *info)
+    XmppWatcher::XmppWatcher(const WatcherInfo &info)
         :_info(info)
     {
         bool check = connect(&_xmppClient, SIGNAL(messageReceived(QXmppMessage)),
@@ -29,10 +29,10 @@ namespace Watcher
     void XmppWatcher::start()
     {
         QXmppConfiguration config;
-        config.setJid(_info->value("xmpp_jid"));
-        config.setHost(_info->value("xmpp_host"));
-        config.setPort(_info->value("xmpp_port").toInt());
-        config.setPassword(_info->value("xmpp_password"));
+        config.setJid(_info.value("xmpp_jid"));
+        config.setHost(_info.value("xmpp_host"));
+        config.setPort(_info.value("xmpp_port").toInt());
+        config.setPassword(_info.value("xmpp_password"));
 
         config.setStreamSecurityMode(QXmppConfiguration::SSLOnly);
         config.setKeepAliveInterval(60);

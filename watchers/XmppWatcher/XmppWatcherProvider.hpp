@@ -16,7 +16,7 @@ namespace Watcher
         Q_OBJECT
         Q_INTERFACES(WatcherInterface)
 
-        IWatcher *newWatcher(WatcherInfo *info);
+        IWatcher *newWatcher(const WatcherInfo &info);
 
         QString watcherName() const;
         QString description() const;

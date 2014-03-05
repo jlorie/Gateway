@@ -16,7 +16,7 @@ namespace Watcher
     {
         Q_OBJECT
     public:
-        explicit AMQPWatcher(WatcherInfo *info);
+        explicit AMQPWatcher(const WatcherInfo &info);
 
         void start();
         void stop();

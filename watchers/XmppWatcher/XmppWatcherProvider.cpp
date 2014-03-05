@@ -5,7 +5,7 @@ namespace Gateway
 {
 namespace Watcher
 {
-    IWatcher *XmppWatcherProvider::newWatcher(WatcherInfo *info)
+    IWatcher *XmppWatcherProvider::newWatcher(const WatcherInfo &info)
     {
         return new XmppWatcher(info);
     }
