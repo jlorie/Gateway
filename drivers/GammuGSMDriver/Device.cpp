@@ -227,7 +227,7 @@ namespace Driver
         bool start(true);
         sms.Number = 0;
         sms.SMS[0].Location = 0;
-        while (error == ERR_NONE /*&& !Config->shutdown*/)
+        while (error == ERR_NONE)
         {
             sms.SMS[0].Folder = 0;
             error = GSM_GetNextSMS(_stateMachine, &sms, start);

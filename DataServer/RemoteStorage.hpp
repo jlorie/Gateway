@@ -8,6 +8,7 @@
 
 #include <QObject>
 #include <QMap>
+#include <QByteArray>
 
 namespace Gateway
 {
@@ -36,7 +37,7 @@ namespace Gateway
         static RemoteStorage *_instance;
         NetworkManager _networkManager;
 
-        bool _waitingResponse;
+        QByteArray _lastNetworkResponse;
     };
 }
 

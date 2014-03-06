@@ -102,11 +102,9 @@ namespace Gateway
             urlRequest.addQueryItem(QString("page_size"), QString::number(1000));
         }
 
-        QNetworkReply *reply;
-
         forever
         {
-            reply = _networkManager.get(QNetworkRequest(urlRequest));
+            _networkManager.get(QNetworkRequest(urlRequest));
             if (_networkManager.waitForResponse())
             {
                 break;
@@ -122,10 +120,9 @@ namespace Gateway
         }
 
         // Finally we get a response
-        QByteArray response (reply->readAll());
         QJson::Parser parser;
 
-        QVariantMap responseMap = parser.parse(response).toMap();
+        QVariantMap responseMap = parser.parse(_lastNetworkResponse).toMap();
 
         if (responseMap.contains("sms"))
         {
@@ -149,12 +146,10 @@ namespace Gateway
 
     void RemoteStorage::requestFinished(QNetworkReply* reply)
     {
-        if (_waitingResponse)
-            return;
-
         if (!reply->error())
         {
-            qDebug() << reply->readAll();
+            _lastNetworkResponse = reply->readAll();
+            qDebug() << _lastNetworkResponse;
         }
     }
 
@@ -170,8 +165,6 @@ namespace Gateway
 
     RemoteStorage::RemoteStorage()
     {
-        _waitingResponse = false;
-
         connect(&_networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(requestFinished(QNetworkReply*)));
         connect(&_networkManager, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)),
                 this, SLOT(authenticate(QNetworkReply*,QAuthenticator*)));
