@@ -3,37 +3,37 @@
 #include <SystemEngine.hpp>
 #include <SystemConfig.hpp>
 
-#include <QStringList>
-
-#include <QDebug>
+#include <iostream>
+#include <string>
+#include <QDateTime>
 
 using namespace Gateway;
 
-//void MsgOuput(QtMsgType type, const QMessageLogContext &context, const QString& qmsg)
-//{
-//    Q_UNUSED(context);
-//    const char* msg = qPrintable(qmsg);
+void MsgOuput(QtMsgType type, const char *msg)
+{
+    std::string dateTime = QDateTime::currentDateTime()
+            .toString()
+            .toStdString();
 
-//    switch (type)
-//    {
-//        case QtDebugMsg:
-//            std::cout << "(II) " << msg << std::endl;
-//            break;
-//        case QtWarningMsg:
-//            std::cerr << "(WW) " << msg << std::endl;
-////            std::cerr << "(WW)    >> " << context.file << " line " << context.line << " on " << context.function << std::endl;
-//            break;
-//        case QtCriticalMsg:
-//            std::cerr << "(EE) " << msg << std::endl;
-//            break;
-//        default:
-//            break;
-//    }
-//}
+    switch (type)
+    {
+        case QtDebugMsg:
+            std::cout << "(II) " << dateTime << " " << msg << std::endl;
+            break;
+        case QtWarningMsg:
+            std::cerr << "(WW) " << dateTime << " " << msg << std::endl;
+            break;
+        case QtCriticalMsg:
+            std::cerr << "(EE) " << dateTime << " " << msg << std::endl;
+            break;
+        default:
+            break;
+    }
+}
 
 int main(int argc, char *argv[])
 {
-//    qInstallMessageHandler(MsgOuput);
+    qInstallMsgHandler(MsgOuput);
     QCoreApplication app(argc, argv);
 
     //TODO hola mundo
