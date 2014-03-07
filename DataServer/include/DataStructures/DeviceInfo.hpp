@@ -21,7 +21,7 @@ public:
 
     bool isEnabled()
     {
-        return (value("device_enabled") == "true");
+        return (value("device_enabled").toInt() == 1);
     }
 };
 

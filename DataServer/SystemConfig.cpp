@@ -31,6 +31,8 @@ namespace Gateway
     DeviceInfoList SystemConfig::devicesInfo() const
     {
         DeviceInfoList devicesInfo;
+        QString logsPath(_settings->value("logs_path").toString());
+        QString logsEnabled(_settings->value("devices_logs_enabled").toString());
 
         _settings->beginGroup(QString("Devices"));
         {
@@ -44,12 +46,18 @@ namespace Gateway
                     devInfo.insert(key, _settings->value(key).toString());
                 }
 
-                devicesInfo.append(devInfo);
+                //insert devices logs
+                devInfo.insert("logs_enabled", logsEnabled);
 
+                QString imsi(devInfo.value("device_imsi"));
+                devInfo.insert("log_file", logsPath + "/" + "ismsi" + imsi + ".log");
+
+                devicesInfo.append(devInfo);
                 _settings->endGroup();
             }
         }
         _settings->endGroup();
+
 
         return devicesInfo;
     }

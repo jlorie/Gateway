@@ -2,6 +2,10 @@
 
 #include "Device.hpp"
 #include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <QDir>
 
 namespace Gateway
 {
@@ -11,9 +15,10 @@ namespace Driver
     volatile GSM_Error sms_send_status;
 
     Device::Device(const DeviceInfo &info)
+        :_info(info)
     {
-        _serialPort = info.value(QString("serial_port"), QString("/dev/gsm_device"));
-        _number = info.value("device_phonenumber");
+        _serialPort = _info.value(QString("serial_port"), QString("/dev/gsm_device"));
+        _number = _info.value("device_phonenumber");
 
         QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkForNewMessage()));
     }
@@ -27,19 +32,9 @@ namespace Driver
         GSM_FreeStateMachine(_stateMachine);
     }
 
-    /* Interrupt signal handler */
-    void interrupt(int sign)
-    {
-        signal(sign, SIG_IGN);
-    }
-
     bool Device::initialize()
     {
         bool result(true);
-
-        /* Register signal handler */
-        signal(SIGINT, interrupt);
-        signal(SIGTERM, interrupt);
 
         /*
          * We don't need gettext, but need to set locales so that
@@ -55,8 +50,6 @@ namespace Driver
         {
             configure();
             result = connect();
-
-            _timer.start(pollInterval);
         }
 
         return result;
@@ -64,10 +57,10 @@ namespace Driver
 
     QString Device::deviceId()
     {
-        char IMEI[30];
-        GSM_GetIMEI(_stateMachine, IMEI);
+        char IMSI[30];
+        GSM_GetSIMIMSI(_stateMachine, IMSI);
 
-        return QString(IMEI);
+        return QString(IMSI);
     }
 
     void send_sms_callback (GSM_StateMachine *sm, int status, int MessageReference, void * user_data)
@@ -94,9 +87,27 @@ namespace Driver
          * Set configuration, first freeing old values.
          */
         free(cfg->Device);
-        cfg->Device = strdup(_serialPort.toStdString().c_str());
         free(cfg->Connection);
+        free(cfg->DebugFile);
+
+        cfg->Device = strdup(qPrintable(_serialPort));
         cfg->Connection = strdup("at");
+
+        if (_info.value("logs_enabled").toInt() != 0)
+        {
+            QString logFile(_info.value("log_file"));
+            QDir logDir(logFile.mid(0, logFile.lastIndexOf("/")));
+
+            if (logDir.exists())
+            {
+                cfg->DebugFile = strdup(qPrintable(logFile));
+                strcpy(cfg->DebugLevel,"textalldate");
+            }
+            else
+            {
+                qWarning("Could not access to logs path \"%s\"", qPrintable(logDir.absolutePath()));
+            }
+        }
 
         /* We have one valid configuration */
         GSM_SetConfigNum(_stateMachine, 1);
@@ -108,23 +119,18 @@ namespace Driver
         bool result(ERR_NONE == error);
 
         if (!result)
-            qWarning("Could not connet to device, %s", GSM_ErrorString(error));
+            qWarning("Could not connect to device, %s", GSM_ErrorString(error));
         else
         {
             GSM_SetSendSMSStatusCallback(_stateMachine, send_sms_callback, NULL);
 
-            PhoneSMSC.Location = 1;
-            GSM_Error error = GSM_GetSMSC(_stateMachine, &PhoneSMSC);
-
-            if (error != ERR_NONE)
-            {
-                qWarning("Error getting SMS Center %s", GSM_ErrorString(error));
-            }
-
-            error = GSM_SetFastSMSSending(_stateMachine, TRUE);
-            if (error != ERR_NONE)
-                qDebug("Error setting fast sms sending, %s", GSM_ErrorString(error));
+//            error = GSM_SetFastSMSSending(_stateMachine, TRUE);
+//            if (error != ERR_NONE)
+//                qDebug("Error setting fast sms sending, %s", GSM_ErrorString(error));
         }
+
+        //start polling
+        _timer.start(pollInterval);
 
         return result;
     }
@@ -148,6 +154,14 @@ namespace Driver
         {
             qWarning ("%s", GSM_ErrorString(error));
             return;
+        }
+
+        PhoneSMSC.Location = 1;
+        GSM_Error error = GSM_GetSMSC(_stateMachine, &PhoneSMSC);
+
+        if (error != ERR_NONE)
+        {
+            qWarning("Error getting SMS Center %s", GSM_ErrorString(error));
         }
 
         bool fail(false);
@@ -212,6 +226,10 @@ namespace Driver
             error = GSM_GetNextSMS(_stateMachine, &sms, TRUE);
             new_message = (error == ERR_NONE);
         }
+        else
+        {
+            qWarning("Error getting sms status (%d): %s", error, qPrintable(GSM_ErrorString(error)));
+        }
 
         if (new_message)
         {
@@ -258,7 +276,7 @@ namespace Driver
                 }
                     break;
                 default:
-                    qWarning("Error getting SMS, %d", error);
+                    qWarning("Error getting SMS, (%d): %s", error, GSM_ErrorString(error));
                     return;
             }
             start = false;

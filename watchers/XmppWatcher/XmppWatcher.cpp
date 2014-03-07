@@ -22,7 +22,7 @@ namespace Watcher
         Q_ASSERT(check);
         Q_UNUSED(check);
 
-        _xmppClient.logger()->setLoggingType(QXmppLogger::StdoutLogging);
+        _xmppClient.logger()->setLoggingType(QXmppLogger::NoLogging);
 
     }
 

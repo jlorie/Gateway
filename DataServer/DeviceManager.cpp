@@ -59,33 +59,40 @@ namespace Gateway
 
             if (device)
             {
-                qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceId()));
-
-                _devices.append(device);
-                if (info.contains("device_phonenumber"))
+                if (device->deviceId() == info.value("device_imsi"))
                 {
-                    QString number(info.value("device_phonenumber"));
-                    _numbers.append(new NumberInfo(number, device));
+                    qDebug("Device with SIM IMSI %s has been initialized ...", qPrintable(device->deviceId()));
 
-                    qDebug("New phone number %s has been registered", qPrintable(number));
+                    _devices.append(device);
+                    if (info.contains("device_phonenumber"))
+                    {
+                        QString number(info.value("device_phonenumber"));
+                        _numbers.append(new NumberInfo(number, device));
 
-                    //re-emitting signal
-                    connect(device, SIGNAL(newMessageReceived(const IMessage*)),
-                            this, SIGNAL(newMessageReceived(const IMessage*)));
+                        qDebug("New phone number %s has been registered", qPrintable(number));
 
-                    connect(device, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
-                            RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
+                        //re-emitting signal
+                        connect(device, SIGNAL(newMessageReceived(const IMessage*)),
+                                this, SIGNAL(newMessageReceived(const IMessage*)));
 
-                    QThread *thread = new QThread;
-                    device->moveToThread(thread);
-                    thread->start();
+                        connect(device, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
+                                RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
+
+                        QThread *thread = new QThread;
+                        device->moveToThread(thread);
+                        thread->start();
+                    }
+                    else
+                    {
+                        qWarning("Error phone numbers were not found for device %s", qPrintable(device->deviceId()));
+                        result = false;
+                    }
                 }
                 else
                 {
-                    qWarning("Error phone numbers were not found for device %s", qPrintable(device->deviceId()));
+                    qWarning("Configuration error for device with SIM IMSI %s", qPrintable(info.value("device_imsi")));
                     result = false;
                 }
-
             }
             else
             {

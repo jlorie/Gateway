@@ -17,7 +17,7 @@ namespace Watcher
 
     QString XmppWatcherProvider::description() const
     {
-        return QString("Watch for events on main server through Xmpp protocol and notify to data server");
+        return QString("Watch for events on main server through Xmpp protocol");
     }
 
     Q_EXPORT_PLUGIN2(xmppWatcher, XmppWatcherProvider)

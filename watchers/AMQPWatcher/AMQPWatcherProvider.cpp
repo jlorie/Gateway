@@ -16,7 +16,7 @@ namespace Watcher
 
     QString AMQPWactherProvider::description() const
     {
-        return QString("Watch for events on main server through AMQP protocol and notify to data server");
+        return QString("Watch for events on main server through AMQP protocol");
     }
 
     Q_EXPORT_PLUGIN2(amqpWatcher, AMQPWactherProvider)

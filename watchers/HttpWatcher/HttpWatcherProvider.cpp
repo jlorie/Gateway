@@ -17,7 +17,7 @@ namespace Watcher
 
     QString HttpWatcherProvider::description() const
     {
-        return QString("Watch for events on main server through HTTP protocol and notify to data server");
+        return QString("Watch for events on main server through HTTP protocol");
     }
 
     Q_EXPORT_PLUGIN2(httpWatcher, HttpWatcherProvider)

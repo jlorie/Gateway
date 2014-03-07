@@ -38,6 +38,7 @@ namespace Driver
             void handleMessage(const GSM_SMSMessage &message);
 
         private:
+            const DeviceInfo _info;
             QString _serialPort;
             QString _number;
 
