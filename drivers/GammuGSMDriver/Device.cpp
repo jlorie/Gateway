@@ -20,6 +20,8 @@ namespace Driver
         _serialPort = _info.value(QString("serial_port"), QString("/dev/gsm_device"));
         _number = _info.value("device_phonenumber");
 
+        _sending = false;
+
         QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkForNewMessage()));
     }
 
@@ -124,6 +126,14 @@ namespace Driver
         {
             GSM_SetSendSMSStatusCallback(_stateMachine, send_sms_callback, NULL);
 
+            PhoneSMSC.Location = 1;
+            GSM_Error error = GSM_GetSMSC(_stateMachine, &PhoneSMSC);
+
+            if (error != ERR_NONE)
+            {
+                qWarning("Error getting SMS Center (%d): %s", error, GSM_ErrorString(error));
+            }
+
 //            error = GSM_SetFastSMSSending(_stateMachine, TRUE);
 //            if (error != ERR_NONE)
 //                qDebug("Error setting fast sms sending, %s", GSM_ErrorString(error));
@@ -156,14 +166,7 @@ namespace Driver
             return;
         }
 
-        PhoneSMSC.Location = 1;
-        GSM_Error error = GSM_GetSMSC(_stateMachine, &PhoneSMSC);
-
-        if (error != ERR_NONE)
-        {
-            qWarning("Error getting SMS Center %s", GSM_ErrorString(error));
-        }
-
+        _sending = true;
         bool fail(false);
         for (int i = 0; i < SMS.Number && !fail; i++)
         {
@@ -201,10 +204,14 @@ namespace Driver
                 }
             }
         }
+        _sending = false;
     }
 
     void Device::checkForNewMessage()
     {
+        if (_sending)
+            return;
+
         GSM_SMSMemoryStatus	SMSStatus;
         GSM_Error error;
         GSM_MultiSMSMessage sms;

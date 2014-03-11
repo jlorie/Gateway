@@ -32,6 +32,13 @@ namespace Gateway
         _lastId = -1;
         qDebug(">> Fetching pending messages from main server ...");
         MessageList pendingMessages(storage->pendingMessages());
+
+//        for( int i = 0; i < 1; i++)
+//        {
+//            pendingMessages.append(new MessageInfo("+584140937970", "+584120884437",
+//                                                   "Very long example Gammu message to show how to construct contatenated.Very long example Gammu message to show how to construct contatenated.Very long example Gammu message to show how to construct contatenated. End of message"));
+//        }
+
         foreach (IMessage *message, pendingMessages)
         {
             redirectMessage(message);
@@ -47,8 +54,6 @@ namespace Gateway
             _watcher->start();
         }
 
-//        redirectMessage(new MessageInfo("+584140937970", "+584120884437",
-//                                                        "Very long example Gammu message to show how to construct contatenated."));
 //        storage->dispatchMessage(new MessageInfo("+584120884437", "+584140937970",
 //                                                 "Very long example Gammu message to show how to construct contatenated."));
     }

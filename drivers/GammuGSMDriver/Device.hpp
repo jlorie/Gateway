@@ -26,6 +26,7 @@ namespace Driver
 
             QString deviceId();
             void sendMessage(const IMessage *message);
+            void onMessageSent(const int &MessageReference, const MessageStatus &status);
 
         protected slots:
             void checkForNewMessage();
@@ -35,6 +36,7 @@ namespace Driver
         private:
             void configure();
             bool connect();
+            void sendMessageFromQueue();
             void handleMessage(const GSM_SMSMessage &message);
 
         private:
@@ -42,13 +44,14 @@ namespace Driver
             QString _serialPort;
             QString _number;
 
-            QTimer _timer;
             MultiPartMap _incompleteMessages;
 
             GSM_StateMachine *_stateMachine;
             GSM_Config *cfg;
             GSM_Error error;
 
+            bool _sending;
+            QTimer _timer;
             GSM_SMSC PhoneSMSC;
     };
 
