@@ -18,6 +18,7 @@ public:
 signals:
     void newMessageReceived(const IMessage *message);
     void messageStatusChanged(qlonglong messageId, MessageStatus status);
+    void connectionClosed();
 };
 
 #endif // IDEVICE_HPP

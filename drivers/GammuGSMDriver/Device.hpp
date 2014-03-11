@@ -39,6 +39,8 @@ namespace Driver
             void sendMessageFromQueue();
             void handleMessage(const GSM_SMSMessage &message);
 
+            void terminateConnection();
+
         private:
             const DeviceInfo _info;
             QString _serialPort;
@@ -50,9 +52,13 @@ namespace Driver
             GSM_Config *cfg;
             GSM_Error error;
 
+            uint _gammuErrors;
+            uint _gammuResets;
+
             bool _sending;
             QTimer _timer;
             GSM_SMSC PhoneSMSC;
+            QString _IMSI;
     };
 
 }

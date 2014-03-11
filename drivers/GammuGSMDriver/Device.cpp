@@ -11,7 +11,10 @@ namespace Gateway
 {
 namespace Driver
 {
-    const uint pollInterval = 1000;
+    const uint PollInterval = 1000;
+    const uint GammuMaxErrors = 3;
+    const uint GammuMaxResets = 3;
+
     volatile GSM_Error sms_send_status;
 
     Device::Device(const DeviceInfo &info)
@@ -21,17 +24,16 @@ namespace Driver
         _number = _info.value("device_phonenumber");
 
         _sending = false;
+        _gammuErrors = 0;
+        _gammuResets = 0;
 
         QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkForNewMessage()));
     }
 
     Device::~Device()
     {
-        /* Terminate connection */
-        error = GSM_TerminateConnection(_stateMachine);
-
-        /* Free up used memory */
-        GSM_FreeStateMachine(_stateMachine);
+        _timer.stop();
+        terminateConnection();
     }
 
     bool Device::initialize()
@@ -52,6 +54,21 @@ namespace Driver
         {
             configure();
             result = connect();
+
+            if(result)
+            {
+                char IMSI[30];
+                GSM_Error error = GSM_GetSIMIMSI(_stateMachine, IMSI);
+                if (error != ERR_NONE)
+                {
+                    qWarning("Error getting SIMIMSI (%d): %s", error, GSM_ErrorString(error));
+                    _gammuErrors++;
+                }
+                else
+                {
+                    _IMSI = QString(IMSI);
+                }
+            }
         }
 
         return result;
@@ -59,10 +76,7 @@ namespace Driver
 
     QString Device::deviceId()
     {
-        char IMSI[30];
-        GSM_GetSIMIMSI(_stateMachine, IMSI);
-
-        return QString(IMSI);
+        return _IMSI;
     }
 
     void send_sms_callback (GSM_StateMachine *sm, int status, int MessageReference, void * user_data)
@@ -121,7 +135,10 @@ namespace Driver
         bool result(ERR_NONE == error);
 
         if (!result)
+        {
             qWarning("Could not connect to device, %s", GSM_ErrorString(error));
+            _gammuErrors++;
+        }
         else
         {
             GSM_SetSendSMSStatusCallback(_stateMachine, send_sms_callback, NULL);
@@ -132,15 +149,19 @@ namespace Driver
             if (error != ERR_NONE)
             {
                 qWarning("Error getting SMS Center (%d): %s", error, GSM_ErrorString(error));
+                _gammuErrors++;
             }
 
-//            error = GSM_SetFastSMSSending(_stateMachine, TRUE);
-//            if (error != ERR_NONE)
-//                qDebug("Error setting fast sms sending, %s", GSM_ErrorString(error));
+            error = GSM_SetFastSMSSending(_stateMachine, TRUE);
+            if (error != ERR_NONE)
+            {
+                qWarning("Error setting fast sms sending, %s", GSM_ErrorString(error));
+                _gammuErrors++;
+            }
         }
 
         //start polling
-        _timer.start(pollInterval);
+        _timer.start(PollInterval);
 
         return result;
     }
@@ -162,7 +183,9 @@ namespace Driver
         error = GSM_EncodeMultiPartSMS(NULL, &SMSInfo, &SMS);
         if (error != ERR_NONE)
         {
-            qWarning ("%s", GSM_ErrorString(error));
+            qWarning ("Error encoding MultiPart message (%d): %s", error, GSM_ErrorString(error));
+            _gammuErrors++;
+
             return;
         }
 
@@ -180,7 +203,9 @@ namespace Driver
             error = GSM_SendSMS(_stateMachine, &SMS.SMS[i]);
             if (error != ERR_NONE)
             {
-                qWarning("Error sending message %s", GSM_ErrorString(error));
+                qWarning("Error sending message (%d) %s", error, GSM_ErrorString(error));
+                _gammuErrors++;
+
                 return;
             }
 
@@ -212,6 +237,25 @@ namespace Driver
         if (_sending)
             return;
 
+        if (_gammuErrors >= GammuMaxErrors) //Reset when more than 3 errors occurs
+        {
+            _timer.stop();
+            if(_gammuResets >= GammuMaxResets)
+            {
+                emit connectionClosed();
+                return;
+            }
+
+            qWarning("Resetting device with id %s", qPrintable(deviceId()));
+
+            GSM_Reset(_stateMachine, FALSE);
+            _gammuErrors = 0;
+            _gammuResets++;
+
+            //Wait 5 seconds
+            QTimer::singleShot(5 * 1000 /*5s*/, &_timer ,SLOT(start()));
+        }
+
         GSM_SMSMemoryStatus	SMSStatus;
         GSM_Error error;
         GSM_MultiSMSMessage sms;
@@ -236,6 +280,7 @@ namespace Driver
         else
         {
             qWarning("Error getting sms status (%d): %s", error, qPrintable(GSM_ErrorString(error)));
+            _gammuErrors++;
         }
 
         if (new_message)
@@ -277,14 +322,21 @@ namespace Driver
                             case ERR_EMPTY:
                                 break;
                             default:
-                                qWarning("Error deleting SMS %s", GSM_ErrorString(error));
+                            {
+                                qWarning("Error deleting SMS (%d): %s", error, GSM_ErrorString(error));
+                                _gammuErrors++;
+                            }
                         }
                     }
                 }
                     break;
                 default:
+                {
                     qWarning("Error getting SMS, (%d): %s", error, GSM_ErrorString(error));
+                    _gammuErrors++;
+
                     return;
+                }
             }
             start = false;
         }
@@ -337,6 +389,18 @@ namespace Driver
             _incompleteMessages.take(messageId);
             delete multiPart;
         }
+    }
+
+    void Device::terminateConnection()
+    {
+        error = GSM_TerminateConnection(_stateMachine);
+        if (error != ERR_NONE)
+        {
+            qWarning("Error terminating connection (%d): %s", error, GSM_ErrorString(error));
+        }
+
+        /* Free up used memory */
+        GSM_FreeStateMachine(_stateMachine);
     }
 
 }

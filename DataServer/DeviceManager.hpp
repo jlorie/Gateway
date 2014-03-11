@@ -28,6 +28,9 @@ namespace Gateway
         IDevice *deviceForId(const QString &deviceId) const;
         NumberInfo *phoneForNumber(const QString &number) const;
 
+    protected slots:
+        void onConnectionClosed();
+
     signals:
          void newMessageReceived(const IMessage *message);
 

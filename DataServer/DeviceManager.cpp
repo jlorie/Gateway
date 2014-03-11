@@ -78,6 +78,8 @@ namespace Gateway
                         connect(device, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
                                 RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
 
+                        connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
+
                         QThread *thread = new QThread;
                         device->moveToThread(thread);
                         thread->start();
@@ -153,6 +155,16 @@ namespace Gateway
         return result;
     }
 
+    void DeviceManager::onConnectionClosed()
+    {
+        IDevice *device = (IDevice *)sender();
+        if (device)
+        {
+            qWarning("Connection with device %s has been closed", qPrintable(device->deviceId()));
+            delete device;
+        }
+    }
+
     DeviceManager::DeviceManager()
     {
         SystemConfig *config = SystemConfig::instance();
@@ -162,7 +174,7 @@ namespace Gateway
         {
             if (devInfo.isEnabled())
             {
-                qDebug(">> Creating device %s", qPrintable(devInfo.value("device_id")));
+                qDebug(">> Device with ISMSI %s has lost connection", qPrintable(devInfo.value("device_id")));
                 createDevice(devInfo);
             }
         }
