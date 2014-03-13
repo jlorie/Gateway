@@ -15,6 +15,7 @@ namespace Driver
         Q_OBJECT
         Q_INTERFACES(DriverInterface)
 
+    public:
         IDevice *newDevice(const DeviceInfo &info);
 
         QString driverName() const;

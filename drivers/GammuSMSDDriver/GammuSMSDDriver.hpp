@@ -14,6 +14,8 @@ namespace Gateway
         Q_OBJECT
         Q_INTERFACES(DriverInterface)
 
+    public:
+        GammuSMSDDriver();
         IDevice *newDevice(const DeviceInfo &info);
 
         QString driverName() const;

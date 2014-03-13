@@ -12,7 +12,11 @@ TARGET = $$qtLibraryTarget(GammuSMSDDriver)
 DESTDIR       = ../../Gateway/libs
 INSTALLS += target
 
-INCLUDEPATH += ../../DataServer
+INCLUDEPATH += ../../DataServer \
+                /usr/include/gammu
+
+unix|win32: LIBS += -lGammu
+unix|win32: LIBS += -lgsmsd
 
 SOURCES += \
     Device.cpp \    
@@ -20,10 +24,9 @@ SOURCES += \
 
 HEADERS +=\
     Device.hpp \
+    GammuSMSDDriver.hpp \
     ../../DataServer/include/DriverInterface.hpp \
     ../../DataServer/include/IPhoneNumber.hpp \
     ../../DataServer/include/IMessage.hpp \
-    ../../DataServer/include/IDevice.hpp \
-    GammuSMSDDriver.hpp \
+    ../../DataServer/include/IDevice.hpp \    
     ../../DataServer/include/DataStructures/MessageInfo.hpp
-

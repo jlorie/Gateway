@@ -3,12 +3,22 @@
 
 namespace Gateway
 {
-    IDevice *GammuSMSDDriver::newDevice(const DeviceInfo &info)
+    GammuSMSDDriver::GammuSMSDDriver()
     {
         //killing previous instances of gammu-smsd
         QProcess::execute("killall gammu-smsd");
+    }
 
-        return new Device(info);
+    IDevice *GammuSMSDDriver::newDevice(const DeviceInfo &info)
+    {
+        Device *device = new Device(info);
+        if (!device->initialize())
+        {
+            delete device;
+            device = 0;
+        }
+
+        return device;
     }
 
     QString GammuSMSDDriver::driverName() const

@@ -8,6 +8,17 @@
 #include <QProcess>
 #include <QFileSystemWatcher>
 
+#include <QFuture>
+#include <QMap>
+
+extern "C"
+{
+    #include <gammu.h>
+    #include <gammu-smsd.h>
+}
+
+typedef QMap<QString, qlonglong> RunningMessages;
+
 class Device : public IDevice
 {
     Q_OBJECT
@@ -19,9 +30,11 @@ class Device : public IDevice
         void sendMessage(const IMessage *message);
         MessageList pendingMessages() const;
 
+        bool initialize();
+
     protected slots:
-        void readStandardOutput();
-        void onInboxDirChanged();
+        void onSmsDirChanged(QString path);
+        void checkSentMessages();
 
     private:
         bool generateConfigFile();
@@ -33,11 +46,17 @@ class Device : public IDevice
         QString _smsPath;
 
         const DeviceInfo _info;
-        QString _configFileName;
         QTemporaryFile _configFile;
 
-        QProcess _process;
         QFileSystemWatcher _watcher;
+        QFuture<GSM_Error> _loopFuture;
+
+        QString _inboxPath;
+        QString _outboxPath;
+        QString _sentPath;
+
+        GSM_SMSDConfig *_smsdConfig;
+        RunningMessages _runningMessages;
 };
 
 #endif // DEVICE_HPP

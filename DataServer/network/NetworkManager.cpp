@@ -56,15 +56,15 @@ namespace Gateway
 
             _retries = defaultRetries;
         }
-        else
-        if (reply->error() >= 201 && reply->error() <= 299) //Content error
-        {
-            qWarning("Server error %s ... discarding request ...", qPrintable(reply->errorString()));
-        }
+//        else
+//        if (reply->error() >= 201 && reply->error() <= 299) //Content error
+//        {
+//            qWarning("Server error (%d): %s ... discarding request ...", reply->error(), qPrintable(reply->errorString()));
+//        }
         else
         if (--_retries)
         {
-            qWarning("Request error %s ... retrying ...", qPrintable(reply->errorString()));
+            qWarning("Request error (%d): %s ... retrying ...", reply->error(), qPrintable(reply->errorString()));
 
             switch (reply->operation())
             {
