@@ -232,6 +232,12 @@ namespace Driver
         _sending = false;
     }
 
+    MessageList Device::pendingMessages() const
+    {
+        MessageList messages;
+        return messages;
+    }
+
     void Device::checkForNewMessage()
     {
         if (_sending)

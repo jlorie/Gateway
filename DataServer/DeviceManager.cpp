@@ -39,6 +39,21 @@ namespace Gateway
         _instance = 0;
     }
 
+    void DeviceManager::loadDevices()
+    {
+        SystemConfig *config = SystemConfig::instance();
+
+        //Creating Serial Devices
+        foreach (DeviceInfo devInfo, config->devicesInfo())
+        {
+            if (devInfo.isEnabled())
+            {
+                qDebug(">> Device with ISMSI %s has lost connection", qPrintable(devInfo.value("device_id")));
+                createDevice(devInfo);
+            }
+        }
+    }
+
     bool DeviceManager::createDevice(const DeviceInfo &info)
     {
         bool result(true);
@@ -79,6 +94,12 @@ namespace Gateway
                                 RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
 
                         connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
+
+                        // getting pending messages from device
+                        foreach (IMessage *message, device->pendingMessages())
+                        {
+                            emit newMessageReceived(message);
+                        }
 
                         QThread *thread = new QThread;
                         device->moveToThread(thread);
@@ -167,17 +188,6 @@ namespace Gateway
 
     DeviceManager::DeviceManager()
     {
-        SystemConfig *config = SystemConfig::instance();
-
-        //Creating Serial Devices
-        foreach (DeviceInfo devInfo, config->devicesInfo())
-        {
-            if (devInfo.isEnabled())
-            {
-                qDebug(">> Device with ISMSI %s has lost connection", qPrintable(devInfo.value("device_id")));
-                createDevice(devInfo);
-            }
-        }
     }
 
     DeviceManager::~DeviceManager()

@@ -22,6 +22,8 @@ namespace Gateway
         static DeviceManager * instance();
         static void destroyInstance();
 
+        void loadDevices();
+
         bool createDevice(const DeviceInfo &info);
         bool deleteDevice(const QString &deviceId);
 

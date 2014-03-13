@@ -3,4 +3,5 @@ CONFIG  += ordered
 
 SUBDIRS += \
            TestDriver \
-           GammuGSMDriver
+           GammuGSMDriver \
+           GammuSMSDDriver

@@ -26,7 +26,7 @@ namespace Driver
 
             QString deviceId();
             void sendMessage(const IMessage *message);
-            void onMessageSent(const int &MessageReference, const MessageStatus &status);
+            MessageList pendingMessages() const;
 
         protected slots:
             void checkForNewMessage();

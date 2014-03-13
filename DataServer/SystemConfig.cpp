@@ -31,8 +31,10 @@ namespace Gateway
     DeviceInfoList SystemConfig::devicesInfo() const
     {
         DeviceInfoList devicesInfo;
-        QString logsPath(_settings->value("logs_path").toString());
+        QString logsPath(_settings->value("logs_path").toString());        
         QString logsEnabled(_settings->value("devices_logs_enabled").toString());
+
+        QString smsPath(_settings->value("sms_path").toString());
 
         _settings->beginGroup(QString("Devices"));
         {
@@ -51,6 +53,9 @@ namespace Gateway
 
                 QString imsi(devInfo.value("device_imsi"));
                 devInfo.insert("log_file", logsPath + "/" + "ismsi" + imsi + ".log");
+
+                //insert sms path -- for GammuSMSDDriver
+                devInfo.insert("sms_path", smsPath + "/"+ "ismsi" + imsi);
 
                 devicesInfo.append(devInfo);
                 _settings->endGroup();

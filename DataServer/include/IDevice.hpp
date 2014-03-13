@@ -6,6 +6,8 @@
 #include <QList>
 #include <QObject>
 
+typedef QList<IMessage *> MessageList;
+
 class IDevice : public QObject
 {
 Q_OBJECT
@@ -14,6 +16,7 @@ public:
 
     virtual QString deviceId() = 0;
     virtual void sendMessage(const IMessage *message) = 0;
+    virtual MessageList pendingMessages() const = 0;
 
 signals:
     void newMessageReceived(const IMessage *message);

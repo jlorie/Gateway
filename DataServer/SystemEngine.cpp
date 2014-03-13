@@ -26,22 +26,24 @@ namespace Gateway
         RemoteStorage *storage = RemoteStorage::instance();
         DeviceManager *devManager = DeviceManager::instance();
 
-        connect(devManager, SIGNAL(newMessageReceived(const IMessage*)),
-                storage, SLOT(dispatchMessage(const IMessage*)));
-
-        _lastId = -1;
-        qDebug(">> Fetching pending messages from main server ...");
-        MessageList pendingMessages(storage->pendingMessages());
-
-//        for( int i = 0; i < 1; i++)
-//        {
-//            pendingMessages.append(new MessageInfo("+584140937970", "+584120884437",
-//                                                   "Very long example Gammu message to show how to construct contatenated.Very long example Gammu message to show how to construct contatenated.Very long example Gammu message to show how to construct contatenated. End of message"));
-//        }
-
-        foreach (IMessage *message, pendingMessages)
+        if (storage)
         {
-            redirectMessage(message);
+            _lastId = -1;
+            if (devManager)
+            {
+                connect(devManager, SIGNAL(newMessageReceived(const IMessage*)),
+                        storage, SLOT(dispatchMessage(const IMessage*)));
+
+                devManager->loadDevices();
+            }
+
+            qDebug(">> Fetching pending messages from main server ...");
+            MessageList pendingMessages(storage->pendingMessages());
+
+            foreach (IMessage *message, pendingMessages)
+            {
+                redirectMessage(message);
+            }
         }
 
         _watcher = WatcherManager::instance()->activeWatcher();
