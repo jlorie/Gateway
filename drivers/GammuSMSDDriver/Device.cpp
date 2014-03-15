@@ -128,7 +128,13 @@ MessageList Device::pendingMessages() const
         if (file.open(QIODevice::ReadOnly|QIODevice::Text))
         {
             QString from = fileName.split("_").at(3);
-            QString body(file.readAll().data());
+
+            QString body;
+            while (!file.atEnd())
+            {
+                 QByteArray line = file.readLine();
+                 body+= line;
+            }
 
             messages.append(new MessageInfo(from, _number, body));
             file.close();
