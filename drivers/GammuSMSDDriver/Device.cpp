@@ -126,9 +126,9 @@ MessageList Device::pendingMessages() const
     QDir inbox(_inboxPath);
     foreach (QString fileName, inbox.entryList(QDir::Files|QDir::NoDotDot))
     {
-//        QFile file(inbox.absoluteFilePath(fileName));
+//        QFile file();
         std::ifstream file;
-        file.open(qPrintable(fileName));
+        file.open(qPrintable(inbox.absoluteFilePath(fileName)));
         if (file.is_open())
         {
             QString from = fileName.split("_").at(3);
