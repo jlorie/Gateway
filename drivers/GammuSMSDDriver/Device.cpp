@@ -126,7 +126,8 @@ MessageList Device::pendingMessages() const
     QDir inbox(_inboxPath);
     foreach (QString fileName, inbox.entryList(QDir::Files|QDir::NoDotDot))
     {
-//        QFile file();
+        // Se implementa con el standard de C++ con QFile hay problemas
+        // al leer el contenido del archivo en arquitecturas ARM
         std::ifstream file;
         file.open(qPrintable(inbox.absoluteFilePath(fileName)));
         if (file.is_open())
@@ -136,35 +137,22 @@ MessageList Device::pendingMessages() const
             while (!file.eof())
             {
                 std::string output;
-                file >> output;
+                std::getline(file, output);
 
-                body.append(output.c_str());
+                body.append(QString(output.c_str()));
+                body.append("\n");
             }
 
+            body.chop(1);
             messages.append(new MessageInfo(from, _number, body));
 
             file.close();
+
+            if (!inbox.remove(fileName))
+            {
+                qWarning("Error deleteting message from file %s", qPrintable(fileName));
+            }
         }
-
-//        if (file.open(QIODevice::ReadOnly|QIODevice::Text))
-//        {
-//            QString from = fileName.split("_").at(3);
-
-//            QString body;
-//            while (!file.atEnd())
-//            {
-//                 QByteArray line = file.readLine();
-//                 body+= line;
-//            }
-
-//            file.close();
-
-//            if (!file.remove())
-//            {
-//                qWarning("Error deleteting message from file %s", qPrintable(fileName));
-//            }
-
-//        }
         else
         {
             qWarning("Error opening new message file %s", qPrintable(fileName));
