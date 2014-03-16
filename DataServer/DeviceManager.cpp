@@ -48,7 +48,6 @@ namespace Gateway
         {
             if (devInfo.isEnabled())
             {
-                qDebug(">> Device with ISMSI %s has lost connection", qPrintable(devInfo.value("device_id")));
                 createDevice(devInfo);
             }
         }
