@@ -136,6 +136,7 @@ MessageList Device::pendingMessages() const
                  body+= line;
             }
 
+            qDebug("~~~~~~~~~~~~~~~~~> body: %s", qPrintable(body));
             messages.append(new MessageInfo(from, _number, body));
             file.close();
 
