@@ -6,6 +6,8 @@
 #include <QProcess>
 #include <QDir>
 
+#include <fstream>
+
 Device::Device(const DeviceInfo &info)
     :_info(info)
 {
@@ -124,28 +126,45 @@ MessageList Device::pendingMessages() const
     QDir inbox(_inboxPath);
     foreach (QString fileName, inbox.entryList(QDir::Files|QDir::NoDotDot))
     {
-        QFile file(inbox.absoluteFilePath(fileName));
-        if (file.open(QIODevice::ReadOnly|QIODevice::Text))
+//        QFile file(inbox.absoluteFilePath(fileName));
+        std::ifstream file;
+        file.open(qPrintable(fileName));
+        if (file.is_open())
         {
             QString from = fileName.split("_").at(3);
-
             QString body;
-            while (!file.atEnd())
+            while (!file.eof())
             {
-                 QByteArray line = file.readLine();
-                 body+= line;
+                std::string output;
+                file >> output;
+
+                body.append(output.c_str());
             }
 
-            qDebug("~~~~~~~~~~~~~~~~~> body: %s", qPrintable(body));
             messages.append(new MessageInfo(from, _number, body));
+
             file.close();
-
-            if (!file.remove())
-            {
-                qWarning("Error deleteting message from file %s", qPrintable(fileName));
-            }
-
         }
+
+//        if (file.open(QIODevice::ReadOnly|QIODevice::Text))
+//        {
+//            QString from = fileName.split("_").at(3);
+
+//            QString body;
+//            while (!file.atEnd())
+//            {
+//                 QByteArray line = file.readLine();
+//                 body+= line;
+//            }
+
+//            file.close();
+
+//            if (!file.remove())
+//            {
+//                qWarning("Error deleteting message from file %s", qPrintable(fileName));
+//            }
+
+//        }
         else
         {
             qWarning("Error opening new message file %s", qPrintable(fileName));
