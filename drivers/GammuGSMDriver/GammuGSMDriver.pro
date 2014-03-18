@@ -19,7 +19,7 @@ unix|win32: LIBS += -lGammu
 SOURCES += \
     Device.cpp \
     GammuGSMDriver.cpp \
-    MultiPart.cpp
+    wrapper/GammuSMSD.cpp
 
 HEADERS +=\
     Device.hpp \
@@ -28,5 +28,5 @@ HEADERS +=\
     ../../DataServer/include/IDevice.hpp \
     ../../DataServer/include/DataStructures/MessageInfo.hpp \
     GammuGSMDriver.hpp \
-    MultiPart.hpp
+    wrapper/GammuSMSD.hpp
 

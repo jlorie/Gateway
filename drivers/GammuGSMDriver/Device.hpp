@@ -1,20 +1,15 @@
 #ifndef DEVICE_HPP
 #define DEVICE_HPP
 
-#include <gammu.h>
 #include <include/IDevice.hpp>
 #include <include/DataStructures/DeviceInfo.hpp>
 
-#include "MultiPart.hpp"
-
-#include <QTimer>
+#include "wrapper/GammuSMSD.hpp"
 
 namespace Gateway
 {
 namespace Driver
 {
-    typedef QMap<int, MultiPart *> MultiPartMap;
-
     class Device : public IDevice
     {
         Q_OBJECT
@@ -29,36 +24,12 @@ namespace Driver
             MessageList pendingMessages() const;
 
         protected slots:
-            void checkForNewMessage();
-            void discardMessages();
-            void discardMultiPart();
-
-        private:
-            void configure();
-            bool connect();
-            void sendMessageFromQueue();
-            void handleMessage(const GSM_SMSMessage &message);
-
-            void terminateConnection();
+            void onMessageReceived(const QString &from, const QString &body);
 
         private:
             const DeviceInfo _info;
-            QString _serialPort;
+            GammuSMSD *_smsd;
             QString _number;
-
-            MultiPartMap _incompleteMessages;
-
-            GSM_StateMachine *_stateMachine;
-            GSM_Config *cfg;
-            GSM_Error error;
-
-            uint _gammuErrors;
-            uint _gammuResets;
-
-            bool _sending;
-            QTimer _timer;
-            GSM_SMSC PhoneSMSC;
-            QString _IMSI;
     };
 
 }
