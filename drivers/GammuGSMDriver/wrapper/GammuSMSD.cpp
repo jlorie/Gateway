@@ -75,8 +75,8 @@ namespace Driver
     void SMSD_SendSMSStatusCallback (GSM_StateMachine *sm, int status, int mr, void *user_data)
     {
         Q_UNUSED(sm);
+        Q_UNUSED(mr);
         Q_UNUSED(user_data);
-        qDebug("SMS sent on device status=%d, reference=%d", status, mr);
 
         /* Was message sent okay? */
         if (status == 0)
@@ -482,6 +482,8 @@ namespace Driver
     void GammuSMSD::SMSD_Terminate(GSM_Error error)
     {
         GSM_Error ret = ERR_NONE;
+
+        _configShutdown = true;
 
         /* Log error message */
         if (error != ERR_NONE && error != 0)

@@ -36,8 +36,6 @@ int main(int argc, char *argv[])
     qInstallMsgHandler(MsgOuput);
     QCoreApplication app(argc, argv);
 
-    //TODO hola mundo
-
     QString configFile("");
     foreach (QString option, app.arguments())
     {
