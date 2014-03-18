@@ -127,7 +127,10 @@ MessageList Device::pendingMessages() const
     foreach (QString fileName, inbox.entryList(QDir::Files|QDir::NoDotDot))
     {
         QFile file(inbox.absoluteFilePath(fileName));
-        if (file.size() > 0 && file.open(QIODevice::ReadOnly|QIODevice::Text))
+        if (file.size() == 0)
+            continue;
+
+        if (file.open(QIODevice::ReadOnly|QIODevice::Text))
         {
             QString from = fileName.split("_").at(3);
             QString body(file.readAll().data());
