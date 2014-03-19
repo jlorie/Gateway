@@ -74,8 +74,7 @@ public:
     bool hasVendorIdentifier() const;
     bool hasProductIdentifier() const;
 
-    bool isNull() const;
-    bool isBusy() const;
+    bool isNull() const;    
 
     static QList<QSerialPortInfo> availablePorts();
 

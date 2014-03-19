@@ -7,7 +7,7 @@ namespace Gateway
 namespace Driver
 {
 
-    const int MaxFailures = 5;
+    const int MaxFailures = 3;
     GSM_Error _configSendingSMSStatus;
 
     GammuSMSD::GammuSMSD(const QString &serialPort)

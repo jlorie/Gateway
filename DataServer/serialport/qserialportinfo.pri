@@ -24,9 +24,7 @@ PRIVATE_HEADERS += \
     $$PWD/qserialportinfo_p.h
 
 SOURCES += \
-    $$PWD/qserialportinfo.cpp \
-    $$PWD/qt4support/qlockfile_unix.cpp \
-    $$PWD/qt4support/qlockfile.cpp
+    $$PWD/qserialportinfo.cpp
 
 unix:!symbian {
     PRIVATE_HEADERS += \
@@ -34,14 +32,6 @@ unix:!symbian {
 
     SOURCES += \        
         $$PWD/qserialportinfo_unix.cpp
-
-    macx {
-        SOURCES += $$PWD/qserialportinfo_mac.cpp
-
-        LIBS += -framework IOKit -framework CoreFoundation
-    }
 }
 
-HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS \
-    qt4support/qlockfile_p.h \
-    qt4support/qlockfile.h
+HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
