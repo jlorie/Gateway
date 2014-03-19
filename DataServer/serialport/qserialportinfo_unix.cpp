@@ -44,7 +44,6 @@
 #include "qserialportinfo.h"
 #include "qserialportinfo_p.h"
 
-#include <qt4support//qlockfile.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qdir.h>
 
