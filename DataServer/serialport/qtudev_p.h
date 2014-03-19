@@ -109,9 +109,9 @@ inline void *resolveSymbol(const char *symbolName)
 inline bool resolveSymbols()
 {
     if (!udevLibrary.isLoaded()) {
-        udevLibrary.setFileNameAndVersion(QStringLiteral("udev"), 1);
+        udevLibrary.setFileNameAndVersion(QString("udev"), 1);
         if (!udevLibrary.load()) {
-            udevLibrary.setFileNameAndVersion(QStringLiteral("udev"), 0);
+            udevLibrary.setFileNameAndVersion(QString("udev"), 0);
             if (!udevLibrary.load()) {
                 qWarning("Failed to load the library: %s, supported version(s): %i and %i", qPrintable(udevLibrary.fileName()), 1, 0);
                 return false;
