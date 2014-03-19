@@ -20,6 +20,8 @@ namespace Driver
         qRegisterMetaType<MessageStatus>("MessageStatus");
         connect(_smsd, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
                 this, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)));
+
+        connect(_smsd, SIGNAL(connectionTerminated()), this, SIGNAL(connectionClosed()));
     }
 
     Device::~Device()

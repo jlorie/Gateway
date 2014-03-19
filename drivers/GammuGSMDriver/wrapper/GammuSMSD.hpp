@@ -36,6 +36,7 @@ namespace Driver
     signals:
         void messageReceived(const QString &from, const QString body);
         void messageStatusChanged(const qlonglong &id, const MessageStatus status);
+        void connectionTerminated();
 
     protected:
         void handleMessage(GSM_MultiSMSMessage *sms);

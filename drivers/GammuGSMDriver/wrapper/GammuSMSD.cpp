@@ -294,8 +294,6 @@ namespace Driver
             {
                 qWarning("Error getting send status of message (%d): %s", error, GSM_ErrorString(error));
                 emit messageStatusChanged(messageId, stFailed);
-
-                continue;
             }
             else
             {
@@ -362,6 +360,8 @@ namespace Driver
                 if (MaxFailures != 0 && initerrors > MaxFailures)
                 {
                     qWarning("Reached maximal number of failures (%d), terminating", MaxFailures);
+                    emit connectionTerminated();
+
                     break;
                 }
                 if (initerrors++ > 3)

@@ -11,6 +11,8 @@ QT       -= gui
 TARGET = DataServer
 TEMPLATE = app
 
+include (serialport/qserialportinfo.pri)
+
 CONFIG   += console
 
 DESTDIR       = ../Gateway/bin

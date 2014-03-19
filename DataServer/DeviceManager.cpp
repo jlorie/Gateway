@@ -5,10 +5,10 @@
 #include <SystemConfig.hpp>
 #include <include/IDevice.hpp>
 
-#include <QDebug>
-#include <QThread>
+#include <qserialportinfo.h>
 
 #include <QDebug>
+#include <QThread>
 
 namespace Gateway
 {
@@ -53,7 +53,7 @@ namespace Gateway
         }
     }
 
-    bool DeviceManager::createDevice(const DeviceInfo &info)
+    bool DeviceManager::createDevice(DeviceInfo info)
     {
         bool result(true);
 
@@ -69,11 +69,14 @@ namespace Gateway
                 return false;
             }
 
-            device = driver->newDevice(info);
-
-            if (device)
+            bool deviceCreated(false);
+            QStringList serialPorts(availableSerialPorts());
+            for (int i = 0; i < serialPorts.size() && !deviceCreated; ++i)
             {
-                if (device->deviceId() == info.value("device_imsi"))
+                info.insert("serial_port", serialPorts.at(i));
+                device = driver->newDevice(info);
+
+                if (device && device->deviceId() == info.value("device_imsi"))
                 {
                     qDebug("Device with SIM IMSI %s has been initialized ...", qPrintable(device->deviceId()));
 
@@ -103,24 +106,20 @@ namespace Gateway
                         QThread *thread = new QThread;
                         device->moveToThread(thread);
                         thread->start();
+
+                        _devices.append(device);
                     }
-                    else
-                    {
-                        qWarning("Error phone numbers were not found for device %s", qPrintable(device->deviceId()));
-                        result = false;
-                    }
-                }
-                else
-                {
-                    qWarning("Configuration error for device with SIM IMSI %s", qPrintable(info.value("device_imsi")));
-                    result = false;
+
+                    deviceCreated = true;
                 }
             }
-            else
+
+            if (!deviceCreated)
             {
-                qWarning("Cannot create instance for device: %s", qPrintable(info.value("device_id")));
-                result = false;
+                qWarning("No serial port has found for device with IMSI %s",
+                         qPrintable(info.value("device_imsi")));
             }
+            result = deviceCreated;
         }
 
         return result;
@@ -180,8 +179,20 @@ namespace Gateway
         IDevice *device = (IDevice *)sender();
         if (device)
         {
-            qWarning("Connection with device %s has been closed", qPrintable(device->deviceId()));
+            QString imsi = device->deviceId();
             delete device;
+            qWarning("Connection with device %s has been closed, trying to reconnect", qPrintable(imsi));
+
+            SystemConfig *config = SystemConfig::instance();
+
+            //Creating Serial Devices
+            foreach (DeviceInfo devInfo, config->devicesInfo())
+            {
+                if (devInfo.isEnabled() && imsi == devInfo.value("device_imsi"))
+                {
+                    createDevice(devInfo);
+                }
+            }
         }
     }
 
@@ -192,5 +203,21 @@ namespace Gateway
     DeviceManager::~DeviceManager()
     {
 
+    }
+
+    QStringList DeviceManager::availableSerialPorts() const
+    {
+        QMap<uint, QString> ports;
+        QList<QSerialPortInfo> infos(QSerialPortInfo::availablePorts());
+
+        foreach (QSerialPortInfo info, infos)
+        {
+            if (ports.find(info.productIdentifier()) == ports.end())
+            {
+                ports.insert(info.productIdentifier(), "/dev/" + info.portName()); // FIXME obtener la direccion multiplataforma
+            }
+        }
+
+        return ports.values();
     }
 }

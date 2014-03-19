@@ -24,7 +24,7 @@ namespace Gateway
 
         void loadDevices();
 
-        bool createDevice(const DeviceInfo &info);
+        bool createDevice(DeviceInfo info);
         bool deleteDevice(const QString &deviceId);
 
         IDevice *deviceForId(const QString &deviceId) const;
@@ -39,6 +39,8 @@ namespace Gateway
     private:
         DeviceManager();
         ~DeviceManager();
+
+        QStringList availableSerialPorts() const;
 
     private:
         static DeviceManager *_instance;
