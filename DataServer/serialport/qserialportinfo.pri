@@ -34,4 +34,5 @@ unix:!symbian {
         $$PWD/qserialportinfo_unix.cpp
 }
 
-HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
+HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS \
+    serialport/qtudev_p.h
