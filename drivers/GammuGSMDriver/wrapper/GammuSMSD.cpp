@@ -93,7 +93,7 @@ namespace Driver
         bool result(true);
         GSM_Error error;
 
-        qDebug("Starting phone communication...");
+        qDebug("Starting phone communication (%s) ...", qPrintable(_serialPort));
         error = GSM_InitConnection(_stateMachine, 1);
         result = (error == ERR_NONE);
 

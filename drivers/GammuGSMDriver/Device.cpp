@@ -26,6 +26,8 @@ namespace Driver
 
     Device::~Device()
     {
+        _smsd->stop();
+        delete _smsd;
     }
 
     bool Device::initialize()
