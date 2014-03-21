@@ -228,11 +228,21 @@ namespace Gateway
         QStringList ports;
         QList<QSerialPortInfo> infos(QSerialPortInfo::availablePorts());
 
-        // remove 0 at front
         QString trimmedId(deviceId);
         {
-            while(trimmedId.at(0) == '0')
-                trimmedId.remove(0, 1);
+            int pos(0);
+
+            // remove 0 at front
+            while(trimmedId.at(pos) == '0')
+                trimmedId.remove(pos, 1);
+
+            pos = trimmedId.indexOf(":");
+            if (pos > 0)
+            {
+                // remove 0 after ":"
+                while(trimmedId.at(pos + 1) == '0')
+                    trimmedId.remove(pos + 1, 1);
+            }
         }
 
         foreach (QSerialPortInfo info, infos)
