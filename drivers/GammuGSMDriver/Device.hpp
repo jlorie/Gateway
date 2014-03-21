@@ -19,7 +19,7 @@ namespace Driver
 
             bool initialize();
 
-            QString deviceId();
+            QString deviceIMEI();
             void sendMessage(const IMessage *message);
             MessageList pendingMessages() const;
 

@@ -45,7 +45,7 @@ namespace Driver
         return result;
     }
 
-    QString Device::deviceId()
+    QString Device::deviceIMEI()
     {
         return _smsd->imsi();
     }

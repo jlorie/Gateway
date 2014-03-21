@@ -27,7 +27,7 @@ class Device : public IDevice
         Device(const DeviceInfo &info);
         ~Device();
 
-        QString deviceId();
+        QString deviceIMEI();
         void sendMessage(const IMessage *message);
         MessageList pendingMessages() const;
 

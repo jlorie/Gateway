@@ -14,7 +14,7 @@ Q_OBJECT
 public:
     virtual ~IDevice() {}
 
-    virtual QString deviceId() = 0;
+    virtual QString deviceIMEI() = 0;
     virtual void sendMessage(const IMessage *message) = 0;
     virtual MessageList pendingMessages() const = 0;
 

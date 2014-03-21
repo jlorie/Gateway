@@ -41,7 +41,7 @@ namespace Gateway
         DeviceManager();
         ~DeviceManager();
 
-        QStringList availableSerialPorts() const;
+        QStringList availablePortsFor(const QString &deviceId) const;
 
     private:
         static DeviceManager *_instance;

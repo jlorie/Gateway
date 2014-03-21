@@ -46,10 +46,10 @@ namespace Gateway
         //Creating Serial Devices
         foreach (DeviceInfo devInfo, config->devicesInfo())
         {
-            if (devInfo.isEnabled())
-            {
-                createDevice(devInfo);
-            }
+            if (!devInfo.isEnabled())
+                continue;
+
+            createDevice(devInfo);
         }
     }
 
@@ -70,7 +70,8 @@ namespace Gateway
             }
 
             bool deviceCreated(false);
-            QStringList serialPorts(availableSerialPorts());
+
+            QStringList serialPorts(availablePortsFor(info.value("device_id")));
             for (int i = 0; i < serialPorts.size() && !deviceCreated; ++i)
             {
                 QString serialPort(serialPorts.at(i));
@@ -79,9 +80,9 @@ namespace Gateway
 
                 device = driver->newDevice(info);
 
-                if (device && device->deviceId() == info.value("device_imei"))
+                if (device && device->deviceIMEI() == info.value("device_imei"))
                 {
-                    qDebug("Device with SIM IMEI %s has been initialized ...", qPrintable(device->deviceId()));
+                    qDebug("Device with SIM IMEI %s has been initialized ...", qPrintable(device->deviceIMEI()));
 
                     _devices.append(device);
                     if (info.contains("device_phonenumber"))
@@ -126,6 +127,7 @@ namespace Gateway
                 }
                 else
                 {
+                    qWarning("Phone IMEI not match ... deleting device");
                     delete device;
                 }
             }
@@ -165,7 +167,7 @@ namespace Gateway
 
         foreach (IDevice *device, _devices)
         {
-            if (device->deviceId() == deviceId)
+            if (device->deviceIMEI() == deviceId)
             {
                 result = device;
                 break;
@@ -195,7 +197,7 @@ namespace Gateway
         IDevice *device = (IDevice *)sender();
         if (device)
         {
-            QString imei = device->deviceId();
+            QString imei = device->deviceIMEI();
             delete device;
             qWarning("Connection with device imei %s has been closed, trying to reconnect", qPrintable(imei));
 
@@ -221,25 +223,25 @@ namespace Gateway
 
     }
 
-    QStringList DeviceManager::availableSerialPorts() const
+    QStringList DeviceManager::availablePortsFor(const QString &deviceId) const
     {
         QStringList ports;
-        QList<int> devicesInUse;
         QList<QSerialPortInfo> infos(QSerialPortInfo::availablePorts());
 
-        // Getting devices in use
-        foreach (QString port, _portsInUse)
+        // remove 0 at front
+        QString trimmedId(deviceId);
         {
-            foreach (QSerialPortInfo info, infos)
-            {
-                if (port.contains(info.portName()))
-                    devicesInUse.append(info.productIdentifier());
-            }
+            while(trimmedId.at(0) == '0')
+                trimmedId.remove(0, 1);
         }
 
         foreach (QSerialPortInfo info, infos)
         {
-            if (!devicesInUse.contains(info.productIdentifier())) // el dispositivo esta libre
+            QString devId = QString::number(info.vendorIdentifier(), 16)
+                    + ":"
+                    + QString::number(info.productIdentifier(), 16);
+
+            if (trimmedId == devId) // el dispositivo esta libre
             {
                 QString serialPort("/dev/" + info.portName()); // FIXME obtener la direccion multiplataforma
                 ports.insert(info.productIdentifier(), serialPort);

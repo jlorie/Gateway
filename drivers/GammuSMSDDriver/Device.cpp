@@ -34,7 +34,7 @@ Device::~Device()
 //    SMSD_FreeConfig(_smsdConfig); FIXME explota
 }
 
-QString Device::deviceId()
+QString Device::deviceIMEI()
 {
     return _imei;
 }
