@@ -67,8 +67,8 @@ bool Device::initialize()
             bool isConnected(false);
             while (!isConnected && connectionTimeout--)
             {
-                // wait 1s
-                sleep(1);
+                // wait 2s
+                sleep(2);
 
                 if (_loopFuture.isRunning())
                 {

@@ -111,15 +111,27 @@ namespace Gateway
                         thread->start();
 
                         _devices.append(device);
+                        _portsInUse.append(serialPort);
+                        deviceCreated = true;
+                    }
+                    else
+                    {
+                        qWarning("No phone number found for device with IMEI: %s", qPrintable(info.value("device_imei")));
+
+                        delete device;
+                        deviceCreated = false;
+                        break;
                     }
 
-                    deviceCreated = true;
+                }
+                else
+                {
+                    delete device;
                 }
             }
 
             if (!deviceCreated)
             {
-                delete device;
                 qWarning("No serial port has found for device with IMEI %s",
                          qPrintable(info.value("device_imsi")));
             }
@@ -211,18 +223,29 @@ namespace Gateway
 
     QStringList DeviceManager::availableSerialPorts() const
     {
-        QMap<uint, QString> ports;
+        QStringList ports;
+        QList<int> devicesInUse;
         QList<QSerialPortInfo> infos(QSerialPortInfo::availablePorts());
+
+        // Getting devices in use
+        foreach (QString port, _portsInUse)
+        {
+            foreach (QSerialPortInfo info, infos)
+            {
+                if (port.contains(info.portName()))
+                    devicesInUse.append(info.productIdentifier());
+            }
+        }
 
         foreach (QSerialPortInfo info, infos)
         {
-            if (!ports.contains(info.productIdentifier()))
+            if (!devicesInUse.contains(info.productIdentifier())) // el dispositivo esta libre
             {
                 QString serialPort("/dev/" + info.portName()); // FIXME obtener la direccion multiplataforma
                 ports.insert(info.productIdentifier(), serialPort);
             }
         }
 
-        return ports.values();
+        return ports;
     }
 }

@@ -48,6 +48,7 @@ namespace Gateway
 
         DeviceList _devices;
         NumberList _numbers;
+        QStringList _portsInUse;
     };
 }
 #endif // DEVICEMANAGER_HPP
