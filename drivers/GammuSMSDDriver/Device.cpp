@@ -13,6 +13,9 @@ Device::Device(const DeviceInfo &info)
     _number = _info.value("device_phonenumber");
     _smsPath = info.value("sms_path");
 
+    _messagesReceived = 0;
+    _messagesSent = 0;
+
     qRegisterMetaType<MessageStatus>("MessageStatus");
 }
 
@@ -58,7 +61,7 @@ bool Device::initialize()
 
         if (result)
         {
-            _loopFuture = QtConcurrent::run(SMSD_MainLoop, _smsdConfig, TRUE, 3);
+            _loopFuture = QtConcurrent::run(SMSD_MainLoop, _smsdConfig, TRUE, 5);
 
             uint connectionTimeout = 10 * 1000; // 10s
             bool isConnected(false);
@@ -71,12 +74,11 @@ bool Device::initialize()
                 {
                     GSM_SMSDStatus status;
                     error = SMSD_GetStatus(_smsdConfig, &status);
-                    _imei = QString(status.IMEI);
+                    _imei = QString(status.IMEI).remove(" ");
 
                     if (!_imei.isEmpty())
                     {
                         isConnected = true;
-                        qDebug("IMEI %s", status.IMEI);
                     }
                 }
                 else
@@ -90,10 +92,12 @@ bool Device::initialize()
             if (isConnected)
             {
                 qDebug("Comunication started (%s)", qPrintable(_serialPort));
-                connect(&_watcher, SIGNAL(directoryChanged(QString)), this, SLOT(onSmsDirChanged(QString)));
 
                 _loopWatcher.setFuture(_loopFuture);
                 connect(&_loopWatcher, SIGNAL(finished()), this, SIGNAL(connectionClosed()));
+
+                connect(&_statusTimer, SIGNAL(timeout()), this, SLOT(checkStatus()));
+                _statusTimer.start(1 * 1000); // 1s
             }
         }
     }
@@ -183,28 +187,6 @@ MessageList Device::pendingMessages() const
     return messages;
 }
 
-
-void Device::onSmsDirChanged(QString path)
-{
-    if (path == _inboxPath)
-    {
-        foreach (IMessage *message, pendingMessages())
-        {
-            emit newMessageReceived(message);
-        }
-    }
-    else
-    if (path == _sentPath)
-    {
-        checkSentMessages();
-    }
-    else
-    if (path == _outboxPath)
-    {
-
-    }
-}
-
 void Device::checkSentMessages()
 {
     QDir sentbox(_sentPath);
@@ -228,6 +210,37 @@ void Device::checkSentMessages()
     }
 }
 
+void Device::checkStatus()
+{
+    GSM_Error error;
+    GSM_SMSDStatus status;
+    error = SMSD_GetStatus(_smsdConfig, &status);
+
+    if (error != ERR_NONE)
+    {
+        qWarning("Error checking status (%d): %s", error, GSM_ErrorString(error));
+        return;
+    }
+
+    if (status.Received > _messagesReceived)
+    {
+        foreach (IMessage *message, pendingMessages())
+        {
+            emit newMessageReceived(message);
+        }
+    }
+
+    if (status.Sent > _messagesSent)
+    {
+        checkSentMessages();
+    }
+
+//    if (status.Network.SignalPercent <  10)
+//    {
+//        qDebug("Signal strength is too low : %d percent", status.Network.SignalPercent);
+//    }
+}
+
 bool Device::generateConfigFile()
 {
     bool result(true);
@@ -244,7 +257,8 @@ bool Device::generateConfigFile()
                             "   outboxpath = %2/outbox/ \n"
                             "   sentsmspath = %2/sent/ \n"                            
                             "   commtimeout = 1 \n"
-                            "   maxretries = 2 \n"
+                            "   maxretries = 3 \n"
+                            "   statusfrequency = 1 \n"
                             "   logfile = %2/gammu.log \n"
                             )
                 .arg(_serialPort, _smsPath);
@@ -284,9 +298,6 @@ bool Device::generateDirStructure()
     _sentPath = _smsPath + "/sent";
     if (!dir.exists(_sentPath))
         result = dir.mkpath(_sentPath);
-
-    _watcher.addPath(_inboxPath);
-    _watcher.addPath(_sentPath);
 
     return result;
 }

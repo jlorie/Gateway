@@ -8,6 +8,7 @@
 
 #include <QObject>
 #include <QLibrary>
+#include <QStringList>
 
 namespace Gateway
 {

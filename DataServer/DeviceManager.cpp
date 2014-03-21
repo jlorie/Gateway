@@ -73,7 +73,10 @@ namespace Gateway
             QStringList serialPorts(availableSerialPorts());
             for (int i = 0; i < serialPorts.size() && !deviceCreated; ++i)
             {
-                info.insert("serial_port", serialPorts.at(i));
+                QString serialPort(serialPorts.at(i));
+                info.insert("serial_port", serialPort);
+                qDebug("Trying to connect on port (%s)", qPrintable(serialPort));
+
                 device = driver->newDevice(info);
 
                 if (device && device->deviceId() == info.value("device_imei"))
@@ -180,16 +183,16 @@ namespace Gateway
         IDevice *device = (IDevice *)sender();
         if (device)
         {
-            QString imsi = device->deviceId();
+            QString imei = device->deviceId();
             delete device;
-            qWarning("Connection with device %s has been closed, trying to reconnect", qPrintable(imsi));
+            qWarning("Connection with device imei %s has been closed, trying to reconnect", qPrintable(imei));
 
             SystemConfig *config = SystemConfig::instance();
 
             //Creating Serial Devices
             foreach (DeviceInfo devInfo, config->devicesInfo())
             {
-                if (devInfo.isEnabled() && imsi == devInfo.value("device_imei"))
+                if (devInfo.isEnabled() && imei == devInfo.value("device_imei"))
                 {
                     createDevice(devInfo);
                 }
@@ -213,9 +216,10 @@ namespace Gateway
 
         foreach (QSerialPortInfo info, infos)
         {
-            if (ports.find(info.productIdentifier()) == ports.end())
+            if (!ports.contains(info.productIdentifier()))
             {
-                ports.insert(info.productIdentifier(), "/dev/" + info.portName()); // FIXME obtener la direccion multiplataforma
+                QString serialPort("/dev/" + info.portName()); // FIXME obtener la direccion multiplataforma
+                ports.insert(info.productIdentifier(), serialPort);
             }
         }
 

@@ -5,12 +5,12 @@
 #include <include/DataStructures/DeviceInfo.hpp>
 
 #include <QTemporaryFile>
-#include <QProcess>
-#include <QFileSystemWatcher>
 
 #include <QFuture>
 #include <QFutureWatcher>
 #include <QMap>
+
+#include <QTimer>
 
 extern "C"
 {
@@ -34,8 +34,8 @@ class Device : public IDevice
         bool initialize();
 
     protected slots:
-        void onSmsDirChanged(QString path);
         void checkSentMessages();
+        void checkStatus();
 
     private:
         bool generateConfigFile();
@@ -51,13 +51,16 @@ class Device : public IDevice
         const DeviceInfo _info;
         QTemporaryFile _configFile;
 
-        QFileSystemWatcher _watcher;
         QFuture<GSM_Error> _loopFuture;
         QFutureWatcher<GSM_Error> _loopWatcher;
+        QTimer _statusTimer;
 
         QString _inboxPath;
         QString _outboxPath;
         QString _sentPath;
+
+        int _messagesReceived;
+        int _messagesSent;
 
         GSM_SMSDConfig *_smsdConfig;
         RunningMessages _runningMessages;
