@@ -62,7 +62,7 @@ namespace Driver
         QMutex _mutex;
 
         bool _configShutdown;
-        char _configStatusIMSI[15];
+        char _configStatusIMEI[15];
         int _configReceiveFrequency;
         int _configIncompleteMessageID;
         int _configIncompleteMessageTime;

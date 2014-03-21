@@ -6,18 +6,20 @@
 #include <QProcess>
 #include <QDir>
 
-#include <fstream>
-
 Device::Device(const DeviceInfo &info)
     :_info(info)
 {
     _serialPort = _info.value(QString("serial_port"), QString("/dev/gsm_device"));
     _number = _info.value("device_phonenumber");
     _smsPath = info.value("sms_path");
+
+    qRegisterMetaType<MessageStatus>("MessageStatus");
 }
 
 Device::~Device()
 {
+    qDebug("Terminating comunication");
+
     GSM_Error error;
     error = SMSD_Shutdown(_smsdConfig);
     if (error != ERR_NONE)
@@ -26,14 +28,13 @@ Device::~Device()
         return;
     }
 
-    SMSD_FreeConfig(_smsdConfig);
+//    SMSD_FreeConfig(_smsdConfig); FIXME explota
 }
 
 QString Device::deviceId()
 {
-    return _info.value(QString("device_imsi"), QString("000000000000000"));
+    return _imei;
 }
-
 
 bool Device::initialize()
 {
@@ -44,7 +45,7 @@ bool Device::initialize()
         GSM_InitLocales(NULL);
 
         /* Initalize configuration with program name */
-        _smsdConfig = SMSD_NewConfig(qPrintable(deviceId()));
+        _smsdConfig = SMSD_NewConfig(qPrintable(_number));
 
         /* Read configuration file */
         error = SMSD_ReadConfig(qPrintable(_configFile.fileName()), _smsdConfig, TRUE);
@@ -57,9 +58,43 @@ bool Device::initialize()
 
         if (result)
         {
-            _loopFuture = QtConcurrent::run(SMSD_MainLoop, _smsdConfig, TRUE, 10);
+            _loopFuture = QtConcurrent::run(SMSD_MainLoop, _smsdConfig, TRUE, 3);
 
-            connect(&_watcher, SIGNAL(directoryChanged(QString)), this, SLOT(onSmsDirChanged(QString)));
+            uint connectionTimeout = 10 * 1000; // 10s
+            bool isConnected(false);
+            while (!isConnected && connectionTimeout--)
+            {
+                // wait 1s
+                sleep(1);
+
+                if (_loopFuture.isRunning())
+                {
+                    GSM_SMSDStatus status;
+                    error = SMSD_GetStatus(_smsdConfig, &status);
+                    _imei = QString(status.IMEI);
+
+                    if (!_imei.isEmpty())
+                    {
+                        isConnected = true;
+                        qDebug("IMEI %s", status.IMEI);
+                    }
+                }
+                else
+                {
+                    error = _loopFuture.result();
+                    qWarning("SMSD Main loop stopped (%d): %s", error, GSM_ErrorString(error));
+                    break;
+                }
+            }
+
+            if (isConnected)
+            {
+                qDebug("Comunication started (%s)", qPrintable(_serialPort));
+                connect(&_watcher, SIGNAL(directoryChanged(QString)), this, SLOT(onSmsDirChanged(QString)));
+
+                _loopWatcher.setFuture(_loopFuture);
+                connect(&_loopWatcher, SIGNAL(finished()), this, SIGNAL(connectionClosed()));
+            }
         }
     }
     else
@@ -110,12 +145,7 @@ void Device::sendMessage(const IMessage *message)
     }
     else
     {
-//        if (!_loopFuture.isRunning())
-//            QString out(outFileName);
-//            QString gammuId = out.mid(out.lastIndexOf("/") + 1);
-
-//            _runningMessages.insert(gammuId, message->id());
-        emit messageStatusChanged(message->id(), stSent);
+        _runningMessages.insert(calculateMessageId(outFileName), message->id());
     }
 }
 
@@ -166,7 +196,7 @@ void Device::onSmsDirChanged(QString path)
     else
     if (path == _sentPath)
     {
-//        checkSentMessages();
+        checkSentMessages();
     }
     else
     if (path == _outboxPath)
@@ -177,16 +207,20 @@ void Device::onSmsDirChanged(QString path)
 
 void Device::checkSentMessages()
 {
-    QDir inbox(_sentPath);
-    foreach (QString fileName, inbox.entryList(QDir::Files|QDir::NoDotDot))
+    QDir sentbox(_sentPath);
+    foreach (QString fileName, sentbox.entryList(QDir::Files|QDir::NoDotDot))
     {
-        qlonglong messageId = _runningMessages.take(fileName);
+        QFile file(sentbox.absoluteFilePath(fileName));
+        if (file.size() == 0)
+            continue;
+
+        qlonglong messageId = _runningMessages.take(calculateMessageId(fileName));
 
         if (messageId)
         {
             emit messageStatusChanged(messageId, stSent);
 
-            if (!inbox.remove(fileName))
+            if (!sentbox.remove(fileName))
             {
                 qWarning("Error deleteting message from file %s", qPrintable(fileName));
             }
@@ -205,11 +239,13 @@ bool Device::generateConfigFile()
                             "   connection = at \n"
                             "[smsd] \n"
                             "   service = files \n"
-                            "   logfile = %2/gammu.log \n"
                             "   debuglevel = 2 \n"
                             "   inboxpath = %2/inbox/ \n"
                             "   outboxpath = %2/outbox/ \n"
-                            "   sentsmspath = %2/sent/ \n"
+                            "   sentsmspath = %2/sent/ \n"                            
+                            "   commtimeout = 1 \n"
+                            "   maxretries = 2 \n"
+                            "   logfile = %2/gammu.log \n"
                             )
                 .arg(_serialPort, _smsPath);
 
@@ -250,6 +286,14 @@ bool Device::generateDirStructure()
         result = dir.mkpath(_sentPath);
 
     _watcher.addPath(_inboxPath);
+    _watcher.addPath(_sentPath);
 
     return result;
+}
+
+qlonglong Device::calculateMessageId(QString outfile) const
+{
+    QString fileName = outfile.mid(outfile.lastIndexOf("/") + 1);
+    QString id = fileName.split("_").at(1);
+    return id.toLongLong();
 }

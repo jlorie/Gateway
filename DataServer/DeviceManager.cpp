@@ -76,9 +76,9 @@ namespace Gateway
                 info.insert("serial_port", serialPorts.at(i));
                 device = driver->newDevice(info);
 
-                if (device && device->deviceId() == info.value("device_imsi"))
+                if (device && device->deviceId() == info.value("device_imei"))
                 {
-                    qDebug("Device with SIM IMSI %s has been initialized ...", qPrintable(device->deviceId()));
+                    qDebug("Device with SIM IMEI %s has been initialized ...", qPrintable(device->deviceId()));
 
                     _devices.append(device);
                     if (info.contains("device_phonenumber"))
@@ -116,7 +116,8 @@ namespace Gateway
 
             if (!deviceCreated)
             {
-                qWarning("No serial port has found for device with IMSI %s",
+                delete device;
+                qWarning("No serial port has found for device with IMEI %s",
                          qPrintable(info.value("device_imsi")));
             }
             result = deviceCreated;
@@ -188,7 +189,7 @@ namespace Gateway
             //Creating Serial Devices
             foreach (DeviceInfo devInfo, config->devicesInfo())
             {
-                if (devInfo.isEnabled() && imsi == devInfo.value("device_imsi"))
+                if (devInfo.isEnabled() && imsi == devInfo.value("device_imei"))
                 {
                     createDevice(devInfo);
                 }

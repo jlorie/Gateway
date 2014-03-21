@@ -51,11 +51,11 @@ namespace Gateway
                 //insert devices logs
                 devInfo.insert("logs_enabled", logsEnabled);
 
-                QString imsi(devInfo.value("device_imsi"));
-                devInfo.insert("log_file", logsPath + "/" + "ismsi" + imsi + ".log");
+                QString number(devInfo.value("device_phonenumber"));
+                devInfo.insert("log_file", logsPath + "/" + "number" + number + ".log");
 
                 //insert sms path -- for GammuSMSDDriver
-                devInfo.insert("sms_path", smsPath + "/"+ "ismsi" + imsi);
+                devInfo.insert("sms_path", smsPath + "/"+ "number" + number);
 
                 devicesInfo.append(devInfo);
                 _settings->endGroup();

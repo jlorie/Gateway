@@ -104,7 +104,7 @@ namespace Driver
             PhoneSMSC.Location = 1;
             if (GSM_GetSMSC(_stateMachine, &PhoneSMSC) == ERR_NONE)
             {
-                error = GSM_GetSIMIMSI(_stateMachine, _configStatusIMSI);
+                error = GSM_GetIMEI(_stateMachine, _configStatusIMEI);
                 if (error != ERR_NONE)
                 {
                     qWarning("Error getting IMSI (%d): %s", error, GSM_ErrorString(error));
@@ -328,7 +328,7 @@ namespace Driver
 
     QString GammuSMSD::imsi() const
     {
-        return QString(_configStatusIMSI);
+        return QString(_configStatusIMEI);
     }
 
     void GammuSMSD::mainLoop()

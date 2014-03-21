@@ -9,6 +9,7 @@
 #include <QFileSystemWatcher>
 
 #include <QFuture>
+#include <QFutureWatcher>
 #include <QMap>
 
 extern "C"
@@ -17,7 +18,7 @@ extern "C"
     #include <gammu-smsd.h>
 }
 
-typedef QMap<QString, qlonglong> RunningMessages;
+typedef QMap<qlonglong, qlonglong> RunningMessages;
 
 class Device : public IDevice
 {
@@ -39,10 +40,12 @@ class Device : public IDevice
     private:
         bool generateConfigFile();
         bool generateDirStructure();
+        qlonglong calculateMessageId(QString outfile) const;
 
     private:
         QString _serialPort;
         QString _number;
+        QString _imei;
         QString _smsPath;
 
         const DeviceInfo _info;
@@ -50,6 +53,7 @@ class Device : public IDevice
 
         QFileSystemWatcher _watcher;
         QFuture<GSM_Error> _loopFuture;
+        QFutureWatcher<GSM_Error> _loopWatcher;
 
         QString _inboxPath;
         QString _outboxPath;
