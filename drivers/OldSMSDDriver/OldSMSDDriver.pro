@@ -7,7 +7,7 @@
 TEMPLATE = lib
 CONFIG += plugin
 #DEFINES += TESTDRIVER_LIBRARY
-TARGET = $$qtLibraryTarget(GammuSMSDDriver)
+TARGET = $$qtLibraryTarget(OldSMSDDriver)
 
 DESTDIR       = ../../Gateway/libs
 INSTALLS += target
