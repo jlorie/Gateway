@@ -256,7 +256,7 @@ bool Device::generateConfigFile()
                             "   inboxpath = %2/inbox/ \n"
                             "   outboxpath = %2/outbox/ \n"
                             "   sentsmspath = %2/sent/ \n"                            
-                            "   commtimeout = 1 \n"
+                            "   commtimeout = 3 \n"
                             "   maxretries = 3 \n"
                             "   statusfrequency = 1 \n"
                             "   logfile = %2/gammu.log \n"

@@ -3,4 +3,5 @@ CONFIG  += ordered
 
 SUBDIRS += \
            GammuGSMDriver \
-           GammuSMSDDriver
+           GammuSMSDDriver \
+           OldSMSDDriver
