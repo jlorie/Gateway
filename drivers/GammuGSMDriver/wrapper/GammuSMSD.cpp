@@ -107,7 +107,7 @@ namespace Driver
                 error = GSM_GetIMEI(_stateMachine, _configStatusIMEI);
                 if (error != ERR_NONE)
                 {
-                    qWarning("Error getting IMSI (%d): %s", error, GSM_ErrorString(error));
+                    qWarning("Error getting IMEI (%d): %s", error, GSM_ErrorString(error));
                     result = false;
                 }
 

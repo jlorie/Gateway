@@ -3,4 +3,5 @@ CONFIG  += ordered
 
 SUBDIRS += DataServer \           
            drivers \
-           watchers
+           watchers \
+    DeviceBrowser
