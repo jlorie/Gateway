@@ -155,11 +155,14 @@ bool Device::generateConfigFile()
                             "   connection = at \n"
                             "[smsd] \n"
                             "   service = files \n"
-                            "   logfile = %2/gammu.log \n"
                             "   debuglevel = 2 \n"
                             "   inboxpath = %2/inbox/ \n"
                             "   outboxpath = %2/outbox/ \n"
                             "   sentsmspath = %2/sent/ \n"
+                            "   commtimeout = 3 \n"
+                            "   maxretries = 3 \n"
+                            "   statusfrequency = 1 \n"
+                            "   logfile = %2/gammu.log \n"
                             )
                 .arg(_serialPort, _smsPath);
 
