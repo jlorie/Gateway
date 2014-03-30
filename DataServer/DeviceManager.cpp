@@ -198,6 +198,8 @@ namespace Gateway
         if (device)
         {
             QString imei = device->deviceIMEI();
+            device->thread()->terminate();
+            device->thread()->wait();
             delete device;
             qWarning("Connection with device imei %s has been closed, trying to reconnect", qPrintable(imei));
 
