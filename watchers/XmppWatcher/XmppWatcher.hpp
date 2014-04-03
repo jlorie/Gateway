@@ -23,6 +23,7 @@ namespace Watcher
     public slots:
         void onMessageReceived(const QXmppMessage &message);
         void onConnect();
+        void onDisconnect();
 
     private:
         WatcherInfo _info;

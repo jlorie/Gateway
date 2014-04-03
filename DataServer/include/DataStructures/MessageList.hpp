@@ -4,6 +4,6 @@
 #include "../IMessage.hpp"
 #include <QList>
 
-typedef QList<IMessage *> MessageList;
+typedef QList<const IMessage *> MessageList;
 
 #endif // MESSAGELIST_HPP

@@ -125,7 +125,7 @@ void Device::onSmsDirChanged(QString path)
 {
     if (path == _inboxPath)
     {
-        foreach (IMessage *message, pendingMessages())
+        foreach (const IMessage *message, pendingMessages())
         {
             emit newMessageReceived(message);
         }

@@ -40,7 +40,7 @@ namespace Gateway
             qDebug(">> Fetching pending messages from main server ...");
             MessageList pendingMessages(storage->pendingMessages());
 
-            foreach (IMessage *message, pendingMessages)
+            foreach (const IMessage *message, pendingMessages)
             {
                 redirectMessage(message);
             }

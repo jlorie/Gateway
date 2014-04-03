@@ -102,7 +102,7 @@ namespace Gateway
                         connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
 
                         // getting pending messages from device
-                        foreach (IMessage *message, device->pendingMessages())
+                        foreach (const IMessage *message, device->pendingMessages())
                         {
                             emit newMessageReceived(message);
                         }

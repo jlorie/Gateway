@@ -27,6 +27,8 @@ namespace Driver
         _gammuErrors = 0;
         _gammuResets = 0;
 
+        _isActive = false;
+
         QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkForNewMessage()));
     }
 
@@ -71,6 +73,7 @@ namespace Driver
             }
         }
 
+        _isActive = result;
         return result;
     }
 
@@ -168,68 +171,7 @@ namespace Driver
 
     void Device::sendMessage(const IMessage *message)
     {
-        GSM_MultiSMSMessage SMS;
-        GSM_MultiPartSMSInfo SMSInfo;
-        unsigned char message_unicode[(message->body().length() + 1) * 2];
-
-        GSM_ClearMultiPartSMSInfo(&SMSInfo);
-        SMSInfo.Class = 1;
-        SMSInfo.EntriesNum = 1;
-        SMSInfo.UnicodeCoding = FALSE;
-        SMSInfo.Entries[0].ID = SMS_ConcatenatedTextLong;
-        EncodeUnicode(message_unicode, qPrintable(message->body()), message->body().length());
-        SMSInfo.Entries[0].Buffer = message_unicode;
-
-        error = GSM_EncodeMultiPartSMS(NULL, &SMSInfo, &SMS);
-        if (error != ERR_NONE)
-        {
-            qWarning ("Error encoding MultiPart message (%d): %s", error, GSM_ErrorString(error));
-            _gammuErrors++;
-
-            return;
-        }
-
-        _sending = true;
-        bool fail(false);
-        for (int i = 0; i < SMS.Number && !fail; i++)
-        {
-            CopyUnicodeString(SMS.SMS[i].SMSC.Number, PhoneSMSC.Number);
-
-            EncodeUnicode(SMS.SMS[i].Number, qPrintable(message->to()), message->to().length());
-            SMS.SMS[i].PDU = SMS_Submit;
-
-            sms_send_status = ERR_TIMEOUT;
-
-            error = GSM_SendSMS(_stateMachine, &SMS.SMS[i]);
-            if (error != ERR_NONE)
-            {
-                qWarning("Error sending message (%d) %s", error, GSM_ErrorString(error));
-                _gammuErrors++;
-
-                return;
-            }
-
-            /* Wait for network reply */
-            forever
-            {
-                GSM_ReadDevice(_stateMachine, TRUE);
-                if (sms_send_status == ERR_NONE)
-                {
-                    if ((i + 1) == SMS.Number)
-                    {
-                        emit messageStatusChanged(message->id(), stSent);
-                    }
-
-                    break;
-                }
-                if (sms_send_status != ERR_TIMEOUT)
-                {
-                    emit messageStatusChanged(message->id(), stFailed);
-                    fail = true;
-                }
-            }
-        }
-        _sending = false;
+        _messagesToSend.append(message);
     }
 
     MessageList Device::pendingMessages() const
@@ -254,7 +196,7 @@ namespace Driver
 
             qWarning("Resetting device with id %s", qPrintable(deviceIMEI()));
 
-            GSM_Reset(_stateMachine, FALSE);
+            GSM_Reset(_stateMachine, TRUE);
             _gammuErrors = 0;
             _gammuResets++;
 
@@ -272,6 +214,7 @@ namespace Driver
         if (error == ERR_NONE)
         {
             new_message = (SMSStatus.SIMUsed + SMSStatus.PhoneUsed > 0);
+            _isActive = true;
         }
         else
         if (error == ERR_NOTSUPPORTED || error == ERR_NOTIMPLEMENTED)
@@ -282,9 +225,12 @@ namespace Driver
             sms.SMS[0].Folder = 0;
             error = GSM_GetNextSMS(_stateMachine, &sms, TRUE);
             new_message = (error == ERR_NONE);
+            _isActive = true;
         }
         else
         {
+            _isActive = false;
+
             qWarning("Error getting sms status (%d): %s", error, qPrintable(GSM_ErrorString(error)));
             _gammuErrors++;
         }
@@ -292,6 +238,14 @@ namespace Driver
         if (new_message)
         {
             discardMessages();
+        }
+
+        if (_isActive)
+        {
+            foreach (const IMessage *message, _messagesToSend)
+            {
+                sendMessage(message);
+            }
         }
     }
 
@@ -395,6 +349,72 @@ namespace Driver
             _incompleteMessages.take(messageId);
             delete multiPart;
         }
+    }
+
+    void Device::sendGammuMessage(const IMessage *message)
+    {
+        GSM_MultiSMSMessage SMS;
+        GSM_MultiPartSMSInfo SMSInfo;
+        unsigned char message_unicode[(message->body().length() + 1) * 2];
+
+        GSM_ClearMultiPartSMSInfo(&SMSInfo);
+        SMSInfo.Class = 1;
+        SMSInfo.EntriesNum = 1;
+        SMSInfo.UnicodeCoding = FALSE;
+        SMSInfo.Entries[0].ID = SMS_ConcatenatedTextLong;
+        EncodeUnicode(message_unicode, qPrintable(message->body()), message->body().length());
+        SMSInfo.Entries[0].Buffer = message_unicode;
+
+        error = GSM_EncodeMultiPartSMS(NULL, &SMSInfo, &SMS);
+        if (error != ERR_NONE)
+        {
+            qWarning ("Error encoding MultiPart message (%d): %s", error, GSM_ErrorString(error));
+            _gammuErrors++;
+
+            return;
+        }
+
+        _sending = true;
+        bool fail(false);
+        for (int i = 0; i < SMS.Number && !fail; i++)
+        {
+            CopyUnicodeString(SMS.SMS[i].SMSC.Number, PhoneSMSC.Number);
+
+            EncodeUnicode(SMS.SMS[i].Number, qPrintable(message->to()), message->to().length());
+            SMS.SMS[i].PDU = SMS_Submit;
+
+            sms_send_status = ERR_TIMEOUT;
+
+            error = GSM_SendSMS(_stateMachine, &SMS.SMS[i]);
+            if (error != ERR_NONE)
+            {
+                qWarning("Error sending message (%d) %s", error, GSM_ErrorString(error));
+                _gammuErrors++;
+
+                return;
+            }
+
+            /* Wait for network reply */
+            forever
+            {
+                GSM_ReadDevice(_stateMachine, TRUE);
+                if (sms_send_status == ERR_NONE)
+                {
+                    if ((i + 1) == SMS.Number)
+                    {
+                        emit messageStatusChanged(message->id(), stSent);
+                    }
+
+                    break;
+                }
+                if (sms_send_status != ERR_TIMEOUT)
+                {
+                    emit messageStatusChanged(message->id(), stFailed);
+                    fail = true;
+                }
+            }
+        }
+        _sending = false;
     }
 
     void Device::terminateConnection()

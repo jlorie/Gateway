@@ -224,7 +224,7 @@ void Device::checkStatus()
 
     if (status.Received > _messagesReceived)
     {
-        foreach (IMessage *message, pendingMessages())
+        foreach (const IMessage *message, pendingMessages())
         {
             emit newMessageReceived(message);
         }

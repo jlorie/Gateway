@@ -76,7 +76,7 @@ namespace Watcher
         if (jsonResponse.contains("sms"))
         {
             MessageList messages = decodeFromJson(jsonResponse.value("sms").toList());
-            foreach (IMessage *message, messages)
+            foreach (const IMessage *message, messages)
             {
                 emit messageReceived(message);
             }

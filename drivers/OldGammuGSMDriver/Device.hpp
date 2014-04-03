@@ -36,8 +36,8 @@ namespace Driver
         private:
             void configure();
             bool connect();
-            void sendMessageFromQueue();
             void handleMessage(const GSM_SMSMessage &message);
+            void sendGammuMessage(const IMessage *message);
 
             void terminateConnection();
 
@@ -47,6 +47,7 @@ namespace Driver
             QString _number;
 
             MultiPartMap _incompleteMessages;
+            MessageList _messagesToSend;
 
             GSM_StateMachine *_stateMachine;
             GSM_Config *cfg;
@@ -59,6 +60,8 @@ namespace Driver
             QTimer _timer;
             GSM_SMSC PhoneSMSC;
             QString _IMEI;
+
+            bool _isActive;
     };
 
 }

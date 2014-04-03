@@ -6,7 +6,7 @@
 #include <QList>
 #include <QObject>
 
-typedef QList<IMessage *> MessageList;
+typedef QList<const IMessage *> MessageList;
 
 class IDevice : public QObject
 {

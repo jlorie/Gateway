@@ -19,6 +19,7 @@ namespace Watcher
                              this, SLOT(onMessageReceived(QXmppMessage)));
 
         connect(&_xmppClient, SIGNAL(connected()), this, SLOT(onConnect()));
+        connect(&_xmppClient, SIGNAL(disconnected()), this, SLOT(onDisconnect()));
         Q_ASSERT(check);
         Q_UNUSED(check);
 
@@ -73,7 +74,12 @@ namespace Watcher
     void XmppWatcher::onConnect()
     {
         qDebug("....... xmpp connected");
-//        sendPacket(QXmppMessage("", QString("sms_bot1@jabber.me"), "---> Hello world!!!"));
+        //        sendPacket(QXmppMessage("", QString("sms_bot1@jabber.me"), "---> Hello world!!!"));
+    }
+
+    void XmppWatcher::onDisconnect()
+    {
+        qDebug("QXmpp has lost connection with main server... trying to reconnect")    ;
     }
 }
 }
