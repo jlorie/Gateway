@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include <QDir>
+#include <QMetaType>
 
 namespace Gateway
 {
@@ -29,6 +30,7 @@ namespace Driver
 
         _isActive = false;
 
+        qRegisterMetaType<MessageStatus>("MessageStatus");
         QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkForNewMessage()));
     }
 
@@ -242,9 +244,10 @@ namespace Driver
 
         if (_isActive)
         {
-            foreach (const IMessage *message, _messagesToSend)
+            while (!_messagesToSend.isEmpty())
             {
-                sendMessage(message);
+                const IMessage *message = _messagesToSend.takeFirst();
+                sendGammuMessage(message);
             }
         }
     }
