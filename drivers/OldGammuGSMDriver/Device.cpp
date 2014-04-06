@@ -196,7 +196,7 @@ namespace Driver
 
             qWarning("Resetting device with id %s", qPrintable(deviceIMEI()));
 
-            GSM_Reset(_stateMachine, TRUE);
+            GSM_Reset(_stateMachine, FALSE);
             _gammuErrors = 0;
             _gammuResets++;
 
