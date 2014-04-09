@@ -37,13 +37,13 @@ namespace Gateway
                 devManager->loadDevices();
             }
 
-            qDebug(">> Fetching pending messages from main server ...");
-            MessageList pendingMessages(storage->pendingMessages());
+//            qDebug(">> Fetching pending messages from main server ...");
+//            MessageList pendingMessages(storage->pendingMessages());
 
-            foreach (const IMessage *message, pendingMessages)
-            {
-                redirectMessage(message);
-            }
+//            foreach (const IMessage *message, pendingMessages)
+//            {
+//                redirectMessage(message);
+//            }
         }
 
         _watcher = WatcherManager::instance()->activeWatcher();

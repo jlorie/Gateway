@@ -25,11 +25,12 @@ namespace Gateway
 
         void loadDevices();
 
-        bool createDevice(DeviceInfo info);
-        bool deleteDevice(const QString &IMEI);
-
         IDevice *deviceForId(const QString &deviceId) const;
         NumberInfo *phoneForNumber(const QString &number) const;
+
+    public slots:
+        bool createDevice(DeviceInfo info);
+        bool deleteDevice(const QString &imei);
 
     protected slots:
         void onConnectionClosed();

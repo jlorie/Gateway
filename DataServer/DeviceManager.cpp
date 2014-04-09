@@ -67,6 +67,7 @@ namespace Gateway
                 return false;
             }
 
+            qDebug("Trying to connect on port (%s)", qPrintable(info.value("serial_port")));
             device = driver->newDevice(info);
             if (!device)
             {
@@ -78,7 +79,6 @@ namespace Gateway
             {
                 qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceIMEI()));
 
-                _devices.append(device);
                 if (info.contains("device_phonenumber"))
                 {
                     QString number(info.value("device_phonenumber"));
@@ -127,21 +127,27 @@ namespace Gateway
         return result;
     }
 
-    bool DeviceManager::deleteDevice(const QString &IMEI)
+    bool DeviceManager::deleteDevice(const QString &imei)
     {
-        bool result(true);
+        bool result(false);
 
-        for (int i = 0; i < _devices.size(); ++i)
+        for (int i = 0; i < _devices.size() && !result; ++i)
         {
             IDevice *device(_devices.at(i));
-            if (device->deviceIMEI() == IMEI)
+            if (device && device->deviceIMEI() == imei)
             {
+                _devices.removeAt(i);
+
                 device->thread()->quit();
                 device->deleteLater();
 
-                _devices.removeAt(i);
-                break;
+                result = true;
             }
+        }
+
+        if (result)
+        {
+            qDebug("Device with IMEI %s has been deleted", qPrintable(imei));
         }
 
         return result;
@@ -201,6 +207,10 @@ namespace Gateway
 
     DeviceManager::DeviceManager()
     {
+        SystemConfig *config(SystemConfig::instance());
+
+        connect(config, SIGNAL(newDeviceFound(DeviceInfo)), this, SLOT(createDevice(DeviceInfo)));
+        connect(config, SIGNAL(deviceRemoved(QString)), this, SLOT(deleteDevice(QString)));
     }
 
     DeviceManager::~DeviceManager()
