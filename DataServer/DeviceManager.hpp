@@ -26,7 +26,7 @@ namespace Gateway
         void loadDevices();
 
         bool createDevice(DeviceInfo info);
-        bool deleteDevice(const QString &deviceId);
+        bool deleteDevice(const QString &IMEI);
 
         IDevice *deviceForId(const QString &deviceId) const;
         NumberInfo *phoneForNumber(const QString &number) const;
@@ -41,14 +41,11 @@ namespace Gateway
         DeviceManager();
         ~DeviceManager();
 
-        QStringList availablePortsFor(const QString &deviceId) const;
-
     private:
         static DeviceManager *_instance;
 
         DeviceList _devices;
         NumberList _numbers;
-        QStringList _portsInUse;
     };
 }
 #endif // DEVICEMANAGER_HPP

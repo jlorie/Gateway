@@ -9,6 +9,7 @@
 
 #include <QDebug>
 #include <QThread>
+#include <QDir>
 
 namespace Gateway
 {
@@ -46,9 +47,6 @@ namespace Gateway
         //Creating Serial Devices
         foreach (DeviceInfo devInfo, config->devicesInfo())
         {
-            if (!devInfo.isEnabled())
-                continue;
-
             createDevice(devInfo);
         }
     }
@@ -69,93 +67,81 @@ namespace Gateway
                 return false;
             }
 
-            bool deviceCreated(false);
-
-            QStringList serialPorts(availablePortsFor(info.value("device_id")));
-            for (int i = 0; i < serialPorts.size() && !deviceCreated; ++i)
+            device = driver->newDevice(info);
+            if (!device)
             {
-                QString serialPort(serialPorts.at(i));
-                info.insert("serial_port", serialPort);
-                qDebug("Trying to connect on port (%s)", qPrintable(serialPort));
+                qWarning("Could not create instance for device with IMEI %s", qPrintable(device->deviceIMEI()));
+                return false;
+            }
 
-                device = driver->newDevice(info);
+            if (device->deviceIMEI() == info.value("device_imei"))
+            {
+                qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceIMEI()));
 
-                if (device && device->deviceIMEI() == info.value("device_imei"))
+                _devices.append(device);
+                if (info.contains("device_phonenumber"))
                 {
-                    qDebug("Device with SIM IMEI %s has been initialized ...", qPrintable(device->deviceIMEI()));
+                    QString number(info.value("device_phonenumber"));
+                    _numbers.append(new NumberInfo(number, device));
+
+                    qDebug("New phone number %s has been registered", qPrintable(number));
+
+                    //re-emitting signal
+                    connect(device, SIGNAL(newMessageReceived(const IMessage*)),
+                            this, SIGNAL(newMessageReceived(const IMessage*)));
+
+                    connect(device, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
+                            RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
+
+                    connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
+
+                    // getting pending messages from device
+                    foreach (const IMessage *message, device->pendingMessages())
+                    {
+                        emit newMessageReceived(message);
+                    }
+
+                    QThread *thread = new QThread;
+                    device->moveToThread(thread);
+                    thread->start();
 
                     _devices.append(device);
-                    if (info.contains("device_phonenumber"))
-                    {
-                        QString number(info.value("device_phonenumber"));
-                        _numbers.append(new NumberInfo(number, device));
-
-                        qDebug("New phone number %s has been registered", qPrintable(number));
-
-                        //re-emitting signal
-                        connect(device, SIGNAL(newMessageReceived(const IMessage*)),
-                                this, SIGNAL(newMessageReceived(const IMessage*)));
-
-                        connect(device, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
-                                RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
-
-                        connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
-
-                        // getting pending messages from device
-                        foreach (const IMessage *message, device->pendingMessages())
-                        {
-                            emit newMessageReceived(message);
-                        }
-
-                        QThread *thread = new QThread;
-                        device->moveToThread(thread);
-                        thread->start();
-
-                        _devices.append(device);
-                        _portsInUse.append(serialPort);
-                        deviceCreated = true;
-                    }
-                    else
-                    {
-                        qWarning("No phone number found for device with IMEI: %s", qPrintable(info.value("device_imei")));
-
-                        delete device;
-                        deviceCreated = false;
-                        break;
-                    }
-
                 }
                 else
                 {
-                    qWarning("Phone IMEI not match ... deleting device");
+                    qWarning("No phone number found for device with IMEI: %s", qPrintable(info.value("device_imei")));
                     delete device;
+
+                    result = false;
                 }
             }
-
-            if (!deviceCreated)
+            else
             {
-                qWarning("No serial port has found for device with IMEI %s",
-                         qPrintable(info.value("device_imsi")));
+                qWarning("Phone IMEI not match ... deleting device");
+                delete device;
+
+                result = false;
             }
-            result = deviceCreated;
         }
 
         return result;
     }
 
-    bool DeviceManager::deleteDevice(const QString &deviceId)
+    bool DeviceManager::deleteDevice(const QString &IMEI)
     {
-        ulong result(true);
+        bool result(true);
 
-        IDevice *deviceToDelete = deviceForId(deviceId);
-
-        if (deviceToDelete)
-        {            
-//            deviceToDelete->deleteLater();
-        }
-        else
+        for (int i = 0; i < _devices.size(); ++i)
         {
-            result = false;
+            IDevice *device(_devices.at(i));
+            if (device->deviceIMEI() == IMEI)
+            {
+                device->thread()->quit();
+                device->deleteLater();
+
+                _devices.removeAt(i);
+                break;
+            }
         }
 
         return result;
@@ -198,13 +184,11 @@ namespace Gateway
         if (device)
         {
             QString imei = device->deviceIMEI();
-            device->thread()->quit();
-            device->deleteLater();
             qWarning("Connection with device imei %s has been closed, trying to reconnect", qPrintable(imei));
 
-            SystemConfig *config = SystemConfig::instance();
+            deleteDevice(imei);
 
-            //Creating Serial Devices
+            SystemConfig *config = SystemConfig::instance();
             foreach (DeviceInfo devInfo, config->devicesInfo())
             {
                 if (devInfo.isEnabled() && imei == devInfo.value("device_imei"))
@@ -222,43 +206,5 @@ namespace Gateway
     DeviceManager::~DeviceManager()
     {
 
-    }
-
-    QStringList DeviceManager::availablePortsFor(const QString &deviceId) const
-    {
-        QStringList ports;
-        QList<QSerialPortInfo> infos(QSerialPortInfo::availablePorts());
-
-        QString trimmedId(deviceId);
-        {
-            int pos(0);
-
-            // remove 0 at front
-            while(trimmedId.at(pos) == '0')
-                trimmedId.remove(pos, 1);
-
-            pos = trimmedId.indexOf(":");
-            if (pos > 0)
-            {
-                // remove 0 after ":"
-                while(trimmedId.at(pos + 1) == '0')
-                    trimmedId.remove(pos + 1, 1);
-            }
-        }
-
-        foreach (QSerialPortInfo info, infos)
-        {
-            QString devId = QString::number(info.vendorIdentifier(), 16)
-                    + ":"
-                    + QString::number(info.productIdentifier(), 16);
-
-            if (trimmedId == devId) // el dispositivo esta libre
-            {
-                QString serialPort("/dev/" + info.portName()); // FIXME obtener la direccion multiplataforma
-                ports.insert(info.productIdentifier(), serialPort);
-            }
-        }
-
-        return ports;
     }
 }

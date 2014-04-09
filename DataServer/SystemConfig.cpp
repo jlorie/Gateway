@@ -1,5 +1,7 @@
 #include "SystemConfig.hpp"
 
+#include <QDir>
+
 namespace Gateway
 {
     SystemConfig *SystemConfig::_instance = 0;
@@ -31,38 +33,24 @@ namespace Gateway
     DeviceInfoList SystemConfig::devicesInfo() const
     {
         DeviceInfoList devicesInfo;
-        QString logsPath(_settings->value("logs_path").toString());        
-        QString logsEnabled(_settings->value("devices_logs_enabled").toString());
+        QString devConfPath(_settings->value("device_conf_path").toString());
 
-        QString smsPath(_settings->value("sms_path").toString());
-
-        _settings->beginGroup(QString("Devices"));
+        QDir devDir(devConfPath);
+        foreach (QString fileName, devDir.entryList(QDir::Files|QDir::NoDotDot))
         {
-            foreach (QString group, _settings->childGroups())
+            DeviceInfo devInfo;
+            QSettings deviceSettings(devDir.absoluteFilePath(fileName), QSettings::IniFormat);
+
+            foreach (QString key, deviceSettings.allKeys())
             {
-                DeviceInfo devInfo;
-                _settings->beginGroup(group);
+                devInfo.insert(key, deviceSettings.value(key).toString());
+            }
 
-                foreach (QString key, _settings->allKeys())
-                {
-                    devInfo.insert(key, _settings->value(key).toString());
-                }
-
-                //insert devices logs
-                devInfo.insert("logs_enabled", logsEnabled);
-
-                QString number(devInfo.value("device_phonenumber"));
-                devInfo.insert("log_file", logsPath + "/" + "number" + number + ".log");
-
-                //insert sms path -- for GammuSMSDDriver
-                devInfo.insert("sms_path", smsPath + "/"+ "number" + number);
-
+            if (!devInfo.isEmpty())
+            {
                 devicesInfo.append(devInfo);
-                _settings->endGroup();
             }
         }
-        _settings->endGroup();
-
 
         return devicesInfo;
     }
