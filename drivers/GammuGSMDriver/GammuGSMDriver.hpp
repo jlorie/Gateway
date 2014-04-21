@@ -10,7 +10,7 @@ namespace Gateway
 {
 namespace Driver
 {
-    class GammuGSMDriver : public QObject, public DriverInterface
+    class OldGammuGSMDriver : public QObject, public DriverInterface
     {
         Q_OBJECT
         Q_INTERFACES(DriverInterface)

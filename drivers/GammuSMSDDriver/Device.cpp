@@ -145,11 +145,11 @@ void Device::sendMessage(const IMessage *message)
 
     if (error != ERR_NONE)
     {
-        emit messageStatusChanged(message->id(), stFailed);
+        emit messageStatusChanged(message, stFailed);
     }
     else
     {
-        _runningMessages.insert(calculateMessageId(outFileName), message->id());
+        _runningMessages.insert(calculateMessageId(outFileName), message);
     }
 }
 
@@ -196,11 +196,11 @@ void Device::checkSentMessages()
         if (file.size() == 0)
             continue;
 
-        qlonglong messageId = _runningMessages.take(calculateMessageId(fileName));
+        const IMessage *message = _runningMessages.take(calculateMessageId(fileName));
 
-        if (messageId)
+        if (message)
         {
-            emit messageStatusChanged(messageId, stSent);
+            emit messageStatusChanged(message, stSent);
 
             if (!sentbox.remove(fileName))
             {

@@ -6,7 +6,7 @@ namespace Gateway
 {
 namespace Driver
 {
-    IDevice *GammuGSMDriver::newDevice(const DeviceInfo &info)
+    IDevice *OldGammuGSMDriver::newDevice(const DeviceInfo &info)
     {
         Device *device = new Device(info);
         if (!device->initialize())
@@ -18,16 +18,16 @@ namespace Driver
         return device;
     }
 
-    QString GammuGSMDriver::driverName() const
+    QString OldGammuGSMDriver::driverName() const
     {
         return QString("GammuGSMDriver");
     }
 
-    QString GammuGSMDriver::description() const
+    QString OldGammuGSMDriver::description() const
     {
         return QString("Driver for multiples phones or gsm modems using Gammu library");
     }
 
-    Q_EXPORT_PLUGIN2(gammuGSMDriver, GammuGSMDriver)
+    Q_EXPORT_PLUGIN2(oldGammuGSMDriver, OldGammuGSMDriver)
 }
 }

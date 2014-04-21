@@ -18,7 +18,7 @@ extern "C"
     #include <gammu-smsd.h>
 }
 
-typedef QMap<qlonglong, qlonglong> RunningMessages;
+typedef QMap<qlonglong, const IMessage *> RunningMessages;
 
 class Device : public IDevice
 {
