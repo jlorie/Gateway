@@ -66,24 +66,23 @@ namespace Gateway
         _networkManager.post(request, postData);
     }
 
-    void RemoteStorage::notifyMessageStatus(qlonglong messageId, MessageStatus status)
+    void RemoteStorage::notifyMessageStatus(const IMessage *message, MessageStatus status)
     {
-        qDebug(">> Changing message status %lld to %s", messageId, (status == stSent ? "\"sent\"" : "\"failed\""));
+        qDebug(">> Changing message status %lld to %s", message->id(), (status == stSent ? "\"sent\"" : "\"failed\""));
 
-        SystemConfig *config = SystemConfig::instance();
-        QString username = config->value("http_username").toString();
-        QString password = config->value("http_password").toString();
+        if (message->statusCallBack().isEmpty())
+        {
+            qWarning("Message with id %lld has not status callback", message->id());
+        }
 
         QNetworkRequest request;
         {
-            request.setUrl(QUrl(QString(config->value("http_url").toString() + "sms/status/%1/%2")
-                                .arg(username, password)));
+            request.setUrl(QUrl(message->statusCallBack()));
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         }
 
         QByteArray postData;
         {
-            postData.append(QByteArray("id=")).append(QString::number(messageId));
             postData.append(QByteArray("&status=")).append((status == stSent ? "sent" : "failed"));
         }
 
@@ -136,7 +135,9 @@ namespace Gateway
                     QString to = sms.value("to").toString();
                     QString body = sms.value("body").toString();
 
-                    result.append(new MessageInfo(from, to, body, id));
+                    QString statusCallback = sms.value("status_callback").toString();
+
+                    result.append(new MessageInfo(from, to, body, id, statusCallback));
                 }
             }
         }

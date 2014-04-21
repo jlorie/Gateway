@@ -18,6 +18,7 @@ class IMessage : public QObject
         virtual QString to() const = 0;
 
         virtual QString body() const = 0;
+        virtual QString statusCallBack() const = 0;
 };
 
 

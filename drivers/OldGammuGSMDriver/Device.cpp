@@ -405,14 +405,14 @@ namespace Driver
                 {
                     if ((i + 1) == SMS.Number)
                     {
-                        emit messageStatusChanged(message->id(), stSent);
+                        emit messageStatusChanged(message, stSent);
                     }
 
                     break;
                 }
                 if (sms_send_status != ERR_TIMEOUT)
                 {
-                    emit messageStatusChanged(message->id(), stFailed);
+                    emit messageStatusChanged(message, stFailed);
                     fail = true;
                 }
             }

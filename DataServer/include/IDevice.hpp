@@ -20,7 +20,7 @@ public:
 
 signals:
     void newMessageReceived(const IMessage *message);
-    void messageStatusChanged(qlonglong messageId, MessageStatus status);
+    void messageStatusChanged(const IMessage *, MessageStatus status);
     void connectionClosed();
 };
 

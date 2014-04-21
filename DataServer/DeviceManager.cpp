@@ -90,8 +90,8 @@ namespace Gateway
                     connect(device, SIGNAL(newMessageReceived(const IMessage*)),
                             this, SIGNAL(newMessageReceived(const IMessage*)));
 
-                    connect(device, SIGNAL(messageStatusChanged(qlonglong,MessageStatus)),
-                            RemoteStorage::instance(), SLOT(notifyMessageStatus(qlonglong,MessageStatus)));
+                    connect(device, SIGNAL(messageStatusChanged(const IMessage *,MessageStatus)),
+                            RemoteStorage::instance(), SLOT(notifyMessageStatus(const IMessage *,MessageStatus)));
 
                     connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
 

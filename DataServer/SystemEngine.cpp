@@ -66,13 +66,14 @@ namespace Gateway
         qDebug("----> from: %s", qPrintable(message->from()));
         qDebug("----> to: %s", qPrintable(message->to()));
         qDebug("----> body: %s", qPrintable(message->body()));
+        qDebug("----> status_callback: %s", qPrintable(message->statusCallBack()));
 
-        if (message->id() <= _lastId && _lastId > 0)
-        {
-            qWarning("Ignoring message with id %lld has already processed", message->id());
-            return;
-        }
-        _lastId = message->id();
+//        if (message->id() <= _lastId && _lastId > 0)
+//        {
+//            qWarning("Ignoring message with id %lld has already processed", message->id());
+//            return;
+//        }
+//        _lastId = message->id();
 
         DeviceManager *devManager = DeviceManager::instance();
         if (!devManager)
@@ -89,7 +90,7 @@ namespace Gateway
             if (!sender)
             {
                 qWarning("Could not find instance for device with number %s", qPrintable(message->from()));
-                RemoteStorage::instance()->notifyMessageStatus(message->id(), stFailed);
+                RemoteStorage::instance()->notifyMessageStatus(message, stFailed);
 
                 return;
             }
@@ -99,7 +100,7 @@ namespace Gateway
         else
         {
             qWarning("Number %s has not been registered", qPrintable(message->from()));
-            RemoteStorage::instance()->notifyMessageStatus(message->id(), stFailed);
+            RemoteStorage::instance()->notifyMessageStatus(message, stFailed);
         }
     }
 

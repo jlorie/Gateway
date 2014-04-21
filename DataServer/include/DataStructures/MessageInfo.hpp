@@ -10,8 +10,9 @@ class MessageInfo: public IMessage
             :_id(0)
         {}
 
-        MessageInfo(const QString &from, const QString &to, const QString &body, const qlonglong id = 0)
-            :_from(from), _to(to), _body(body), _id(id)
+        MessageInfo(const QString &from, const QString &to, const QString &body,
+                    const qlonglong id = 0, const QString statusCallBack = "")
+            :_from(from), _to(to), _body(body), _id(id), _statusCallback(statusCallBack)
         {}
 
         void setId(const qlonglong id)
@@ -60,11 +61,23 @@ class MessageInfo: public IMessage
             return _body;
         }
 
+        void setStatusCallback(const QString &statusCallBack)
+        {
+            _statusCallback = statusCallBack;
+        }
+
+        QString statusCallBack() const
+        {
+            return _statusCallback;
+        }
+
     private:
         QString _from;
         QString _to;
         QString _body;
         qlonglong _id;
+
+        QString _statusCallback;
 };
 
 #endif // SMS_HPP

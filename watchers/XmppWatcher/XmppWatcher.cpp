@@ -66,7 +66,9 @@ namespace Watcher
                 QString to = sms.value("to").toString();
                 QString body = sms.value("body").toString();
 
-                emit messageReceived(new MessageInfo(from, to, body, id));
+                QString statusCallback = sms.value("status_callback").toString();
+
+                emit messageReceived(new MessageInfo(from, to, body, id, statusCallback));
             }
         }
     }
