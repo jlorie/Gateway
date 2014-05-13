@@ -378,8 +378,8 @@ namespace Driver
         }
 
         _sending = true;
-        bool fail(false);
-        for (int i = 0; i < SMS.Number && !fail; i++)
+        bool failed(false);
+        for (int i = 0; i < SMS.Number && !failed; i++)
         {
             CopyUnicodeString(SMS.SMS[i].SMSC.Number, PhoneSMSC.Number);
 
@@ -398,7 +398,7 @@ namespace Driver
             }
 
             /* Wait for network reply */
-            forever
+            while (!failed)
             {
                 GSM_ReadDevice(_stateMachine, TRUE);
                 if (sms_send_status == ERR_NONE)
@@ -413,7 +413,7 @@ namespace Driver
                 if (sms_send_status != ERR_TIMEOUT)
                 {
                     emit messageStatusChanged(message, stFailed);
-                    fail = true;
+                    failed = true;
                 }
             }
         }
