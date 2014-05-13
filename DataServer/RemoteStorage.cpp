@@ -73,6 +73,7 @@ namespace Gateway
         if (message->statusCallBack().isEmpty())
         {
             qWarning("Message with id %lld has not status callback", message->id());
+            return;
         }
 
         QNetworkRequest request;
