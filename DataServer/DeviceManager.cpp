@@ -71,7 +71,7 @@ namespace Gateway
             device = driver->newDevice(info);
             if (!device)
             {
-                qWarning("Could not create instance for device with IMEI %s", qPrintable(device->deviceIMEI()));
+                qWarning("Could not create instance for device with IMEI %s", qPrintable(info.value("device_imei", "unknown")));
                 return false;
             }
 
