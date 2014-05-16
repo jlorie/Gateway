@@ -112,7 +112,7 @@ namespace Driver
         free(cfg->DebugFile);
 
         cfg->Device = strdup(qPrintable(_serialPort));
-        cfg->Connection = strdup("at");
+        cfg->Connection = strdup(qPrintable(_info.value("gammu_connection", "at")));
 
         if (_info.value("logs_enabled").toInt() != 0)
         {
