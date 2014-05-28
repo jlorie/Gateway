@@ -3,6 +3,7 @@
 
 #include <QMap>
 #include <QString>
+#include <QStringList>
 
 class DeviceInfo: public QMap<QString, QString>
 {
@@ -23,6 +24,19 @@ public:
     {
         return (value("device_enabled").toInt() == 1);
     }
+
+    void addPort(const QString &newPort)
+    {
+        _ports.append(newPort);
+    }
+
+    QStringList ports() const
+    {
+        return _ports;
+    }
+
+private:
+    QStringList _ports;
 };
 
 #endif // DEVICEINFO_HPP

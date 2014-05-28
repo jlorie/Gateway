@@ -163,8 +163,17 @@ namespace Gateway
 
         foreach (QString key, deviceSettings.allKeys())
         {
-            devInfo.insert(key, deviceSettings.value(key).toString());
+            devInfo.insert(key, deviceSettings.value(key).toString());            
         }
+
+        int size = deviceSettings.beginReadArray("Ports");
+
+        for (int i = 0; i < size; ++i)
+        {
+             deviceSettings.setArrayIndex(i);
+             devInfo.addPort(deviceSettings.value("serial_port").toString());
+         }
+         deviceSettings.endArray();
 
         return devInfo;
     }

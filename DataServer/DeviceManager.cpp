@@ -67,60 +67,68 @@ namespace Gateway
                 return false;
             }
 
-            qDebug("Trying to connect on port (%s)", qPrintable(info.value("serial_port")));
-            device = driver->newDevice(info);
-            if (!device)
+            foreach (QString port, info.ports())
             {
-                qWarning("Could not create instance for device with IMEI %s", qPrintable(info.value("device_imei", "unknown")));
-                return false;
-            }
+                info.insert("serial_port", port);
+                qDebug("Trying to connect on port (%s)", qPrintable(info.value("serial_port")));
 
-            if (device->deviceIMEI() == info.value("device_imei"))
-            {
-                qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceIMEI()));
-
-                if (info.contains("device_phonenumber"))
+                device = driver->newDevice(info);
+                if (!device)
                 {
-                    QString number(info.value("device_phonenumber"));
-                    _numbers.append(new NumberInfo(number, device));
+                    qWarning("Could not create instance for device with IMEI %s", qPrintable(info.value("device_imei", "unknown")));
+                    continue;
+                }
 
-                    qDebug("New phone number %s has been registered", qPrintable(number));
 
-                    //re-emitting signal
-                    connect(device, SIGNAL(newMessageReceived(const IMessage*)),
-                            this, SIGNAL(newMessageReceived(const IMessage*)));
+                if (device->deviceIMEI() == info.value("device_imei"))
+                {
+                    qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceIMEI()));
 
-                    connect(device, SIGNAL(messageStatusChanged(const IMessage *,MessageStatus)),
-                            RemoteStorage::instance(), SLOT(notifyMessageStatus(const IMessage *,MessageStatus)));
-
-                    connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
-
-                    // getting pending messages from device
-                    foreach (const IMessage *message, device->pendingMessages())
+                    if (info.contains("device_phonenumber"))
                     {
-                        emit newMessageReceived(message);
+                        QString number(info.value("device_phonenumber"));
+                        _numbers.append(new NumberInfo(number, device));
+
+                        qDebug("New phone number %s has been registered", qPrintable(number));
+
+                        //re-emitting signal
+                        connect(device, SIGNAL(newMessageReceived(const IMessage*)),
+                                this, SIGNAL(newMessageReceived(const IMessage*)));
+
+                        connect(device, SIGNAL(messageStatusChanged(const IMessage *,MessageStatus)),
+                                RemoteStorage::instance(), SLOT(notifyMessageStatus(const IMessage *,MessageStatus)));
+
+                        connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
+
+                        // getting pending messages from device
+                        foreach (const IMessage *message, device->pendingMessages())
+                        {
+                            emit newMessageReceived(message);
+                        }
+
+                        QThread *thread = new QThread;
+                        device->moveToThread(thread);
+                        thread->start();
+
+                        _devices.append(device);
+                    }
+                    else
+                    {
+                        qWarning("No phone number found for device with IMEI: %s", qPrintable(info.value("device_imei")));
+                        delete device;
+
+                        result = false;
                     }
 
-                    QThread *thread = new QThread;
-                    device->moveToThread(thread);
-                    thread->start();
-
-                    _devices.append(device);
+                    break;
                 }
                 else
                 {
-                    qWarning("No phone number found for device with IMEI: %s", qPrintable(info.value("device_imei")));
+                    qWarning("Phone IMEI not match ... deleting device");
                     delete device;
 
                     result = false;
                 }
-            }
-            else
-            {
-                qWarning("Phone IMEI not match ... deleting device");
-                delete device;
-
-                result = false;
             }
         }
 
