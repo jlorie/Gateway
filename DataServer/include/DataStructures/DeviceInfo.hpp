@@ -3,40 +3,40 @@
 
 #include <QMap>
 #include <QString>
-#include <QStringList>
+#include <qstringlist.h>
 
 class DeviceInfo: public QMap<QString, QString>
 {
 public:
-    QString toString()
-    {
-        QString result;
+   QString toString()
+   {
+       QString result;
 
-        foreach (QString key, keys())
-        {
-            result +=  key + ": " + value(key) + "\n";
-        }
+       foreach (QString key, keys())
+       {
+           result +=  key + ": " + value(key) + "\n";
+       }
 
-        return result;
-    }
+       return result;
+   }
 
-    bool isEnabled()
-    {
-        return (value("device_enabled").toInt() == 1);
-    }
+   bool isEnabled()
+   {
+       return (value("device_enabled").toInt() == 1);
+   }
 
-    void addPort(const QString &newPort)
-    {
-        _ports.append(newPort);
-    }
+   QStringList ports ()
+   {
+       return _ports;
+   }
 
-    QStringList ports() const
-    {
-        return _ports;
-    }
+   void addPort (const QString & item)
+   {
+       _ports.append(item);
+   }
 
 private:
-    QStringList _ports;
+   QStringList _ports;
 };
 
 #endif // DEVICEINFO_HPP

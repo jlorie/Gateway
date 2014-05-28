@@ -13,216 +13,221 @@
 
 namespace Gateway
 {
-    DeviceManager * DeviceManager::_instance = 0;
+   DeviceManager * DeviceManager::_instance = 0;
 
-    void DeviceManager::initialize()
-    {
-        if (!_instance)
-        {
-            qDebug(">> Initializing DeviceManager ...");
-            _instance = new DeviceManager;
-            qDebug(">> DeviceManager initialized !!!");
-        }
-    }
+   void DeviceManager::initialize()
+   {
+       if (!_instance)
+       {
+           qDebug(">> Initializing DeviceManager ...");
+           _instance = new DeviceManager;
+           qDebug(">> DeviceManager initialized !!!");
+       }
+   }
 
-    DeviceManager *DeviceManager::instance()
-    {
-        return _instance;
-    }
+   DeviceManager *DeviceManager::instance()
+   {
+       return _instance;
+   }
 
-    void DeviceManager::destroyInstance()
-    {
-        if (_instance)
-        {
-            delete _instance;
-        }
+   void DeviceManager::destroyInstance()
+   {
+       if (_instance)
+       {
+           delete _instance;
+       }
 
-        _instance = 0;
-    }
+       _instance = 0;
+   }
 
-    void DeviceManager::loadDevices()
-    {
-        SystemConfig *config = SystemConfig::instance();
+   void DeviceManager::loadDevices()
+   {
+       SystemConfig *config = SystemConfig::instance();
 
-        //Creating Serial Devices
-        foreach (DeviceInfo devInfo, config->devicesInfo())
-        {
-            createDevice(devInfo);
-        }
-    }
+       //Creating Serial Devices
+       foreach (DeviceInfo devInfo, config->devicesInfo())
+       {
+           createDevice(devInfo);
+       }
+   }
 
-    bool DeviceManager::createDevice(DeviceInfo info)
-    {
-        bool result(true);
+   bool DeviceManager::createDevice(DeviceInfo info)
+   {
+       foreach (QString port, info.ports()) {
+           qDebug("%s", qPrintable(port));
+       }
+       bool result(true);
 
-        IDevice *device = 0;
-        {
-            QString driverName = info.value(QString("driver_name"), QString("GenericGSMDriver"));
+       IDevice *device = 0;
+       {
+           QString driverName = info.value(QString("driver_name"), QString("GenericGSMDriver"));
 
-            DriverInterface *driver = DriverManager::instance()->driverFor(driverName);
+           DriverInterface *driver = DriverManager::instance()->driverFor(driverName);
 
-            if (!driver)
-            {
-                qWarning("Could not find driver %s", qPrintable(driverName));
-                return false;
-            }
+           if (!driver)
+           {
+               qWarning("Could not find driver %s", qPrintable(driverName));
+               return false;
+           }
+           bool created_device = false;
+           int size = info.ports().size();
+           for (int i = 0; i < size; ++i)
+           {
+               qDebug("Trying to connect on port (%s)", qPrintable(info.ports().at(i)));
+               info.insert("serial_port", info.ports().at(i));
+               device = driver->newDevice(info);
+               if (!device)
+               {
+                   qWarning("Could not create instance for device with PORT %s", qPrintable(info.ports().at(i)));
+               }
+               else
+               {
+                   qDebug("Device with IMEI %s connected to port %s", qPrintable(device->deviceIMEI()), qPrintable(info.ports().at(i)));
+                   created_device = true;
+                   break;
+               }
+           }
 
-            foreach (QString port, info.ports())
-            {
-                info.insert("serial_port", port);
-                qDebug("Trying to connect on port (%s)", qPrintable(info.value("serial_port")));
+          if (device->deviceIMEI() == info.value("device_imei"))
+           {
+               qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceIMEI()));
 
-                device = driver->newDevice(info);
-                if (!device)
-                {
-                    qWarning("Could not create instance for device with IMEI %s", qPrintable(info.value("device_imei", "unknown")));
-                    continue;
-                }
+               if (info.contains("device_phonenumber"))
+               {
+                   QString number(info.value("device_phonenumber"));
+                   _numbers.append(new NumberInfo(number, device));
 
+                   qDebug("New phone number %s has been registered", qPrintable(number));
 
-                if (device->deviceIMEI() == info.value("device_imei"))
-                {
-                    qDebug("Device with IMEI %s has been initialized ...", qPrintable(device->deviceIMEI()));
+                   //re-emitting signal
+                   connect(device, SIGNAL(newMessageReceived(const IMessage*)),
+                           this, SIGNAL(newMessageReceived(const IMessage*)));
 
-                    if (info.contains("device_phonenumber"))
-                    {
-                        QString number(info.value("device_phonenumber"));
-                        _numbers.append(new NumberInfo(number, device));
+                   connect(device, SIGNAL(messageStatusChanged(const IMessage *,MessageStatus)),
+                           RemoteStorage::instance(), SLOT(notifyMessageStatus(const IMessage *,MessageStatus)));
 
-                        qDebug("New phone number %s has been registered", qPrintable(number));
+                   connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
 
-                        //re-emitting signal
-                        connect(device, SIGNAL(newMessageReceived(const IMessage*)),
-                                this, SIGNAL(newMessageReceived(const IMessage*)));
+                   // getting pending messages from device
+                   foreach (const IMessage *message, device->pendingMessages())
+                   {
+                       emit newMessageReceived(message);
+                   }
 
-                        connect(device, SIGNAL(messageStatusChanged(const IMessage *,MessageStatus)),
-                                RemoteStorage::instance(), SLOT(notifyMessageStatus(const IMessage *,MessageStatus)));
+                   QThread *thread = new QThread;
+                   device->moveToThread(thread);
+                   thread->start();
 
-                        connect(device, SIGNAL(connectionClosed()), this, SLOT(onConnectionClosed()));
+                   _devices.append(device);
+               }
+               else
+               {
+                   qWarning("No phone number found for device with IMEI: %s", qPrintable(info.value("device_imei")));
+                   delete device;
 
-                        // getting pending messages from device
-                        foreach (const IMessage *message, device->pendingMessages())
-                        {
-                            emit newMessageReceived(message);
-                        }
+                   result = false;
+               }
+           }
+           else
+           {
+               qWarning("Phone IMEI not match ... deleting device");
+               delete device;
 
-                        QThread *thread = new QThread;
-                        device->moveToThread(thread);
-                        thread->start();
+               result = false;
+           }
+       }
 
-                        _devices.append(device);
-                    }
-                    else
-                    {
-                        qWarning("No phone number found for device with IMEI: %s", qPrintable(info.value("device_imei")));
-                        delete device;
+       return result;
+   }
 
-                        result = false;
-                    }
+   bool DeviceManager::deleteDevice(const QString &imei)
+   {
+       bool result(false);
 
-                    break;
-                }
-                else
-                {
-                    qWarning("Phone IMEI not match ... deleting device");
-                    delete device;
+       for (int i = 0; i < _devices.size() && !result; ++i)
+       {
+           IDevice *device(_devices.at(i));
+           if (device && device->deviceIMEI() == imei)
+           {
+               _devices.removeAt(i);
 
-                    result = false;
-                }
-            }
-        }
+               device->thread()->quit();
+               device->deleteLater();
 
-        return result;
-    }
+               result = true;
+           }
+       }
 
-    bool DeviceManager::deleteDevice(const QString &imei)
-    {
-        bool result(false);
+       if (result)
+       {
+           qDebug("Device with IMEI %s has been deleted", qPrintable(imei));
+       }
 
-        for (int i = 0; i < _devices.size() && !result; ++i)
-        {
-            IDevice *device(_devices.at(i));
-            if (device && device->deviceIMEI() == imei)
-            {
-                _devices.removeAt(i);
+       return result;
+   }
 
-                device->thread()->quit();
-                device->deleteLater();
+   IDevice *DeviceManager::deviceForId(const QString &deviceId) const
+   {
+       IDevice *result = 0;
 
-                result = true;
-            }
-        }
+       foreach (IDevice *device, _devices)
+       {
+           if (device->deviceIMEI() == deviceId)
+           {
+               result = device;
+               break;
+           }
+       }
 
-        if (result)
-        {
-            qDebug("Device with IMEI %s has been deleted", qPrintable(imei));
-        }
+       return result;
+   }
 
-        return result;
-    }
+   NumberInfo *DeviceManager::phoneForNumber(const QString &number) const
+   {
+       NumberInfo *result = 0;
+       foreach (NumberInfo *info, _numbers)
+       {
+           if (info->number() == number)
+           {
+               result = info;
+               break;
+           }
+       }
 
-    IDevice *DeviceManager::deviceForId(const QString &deviceId) const
-    {
-        IDevice *result = 0;
+       return result;
+   }
 
-        foreach (IDevice *device, _devices)
-        {
-            if (device->deviceIMEI() == deviceId)
-            {
-                result = device;
-                break;
-            }
-        }
+   void DeviceManager::onConnectionClosed()
+   {
+       IDevice *device = (IDevice *)sender();
+       if (device)
+       {
+           QString imei = device->deviceIMEI();
+           qWarning("Connection with device imei %s has been closed, trying to reconnect", qPrintable(imei));
 
-        return result;
-    }
+           deleteDevice(imei);
 
-    NumberInfo *DeviceManager::phoneForNumber(const QString &number) const
-    {
-        NumberInfo *result = 0;
-        foreach (NumberInfo *info, _numbers)
-        {
-            if (info->number() == number)
-            {
-                result = info;
-                break;
-            }
-        }
+           SystemConfig *config = SystemConfig::instance();
+           foreach (DeviceInfo devInfo, config->devicesInfo())
+           {
+               if (devInfo.isEnabled() && imei == devInfo.value("device_imei"))
+               {
+                   createDevice(devInfo);
+               }
+           }
+       }
+   }
 
-        return result;
-    }
+   DeviceManager::DeviceManager()
+   {
+       SystemConfig *config(SystemConfig::instance());
 
-    void DeviceManager::onConnectionClosed()
-    {
-        IDevice *device = (IDevice *)sender();
-        if (device)
-        {
-            QString imei = device->deviceIMEI();
-            qWarning("Connection with device imei %s has been closed, trying to reconnect", qPrintable(imei));
+       connect(config, SIGNAL(newDeviceFound(DeviceInfo)), this, SLOT(createDevice(DeviceInfo)));
+       connect(config, SIGNAL(deviceRemoved(QString)), this, SLOT(deleteDevice(QString)));
+   }
 
-            deleteDevice(imei);
+   DeviceManager::~DeviceManager()
+   {
 
-            SystemConfig *config = SystemConfig::instance();
-            foreach (DeviceInfo devInfo, config->devicesInfo())
-            {
-                if (devInfo.isEnabled() && imei == devInfo.value("device_imei"))
-                {
-                    createDevice(devInfo);
-                }
-            }
-        }
-    }
-
-    DeviceManager::DeviceManager()
-    {
-        SystemConfig *config(SystemConfig::instance());
-
-        connect(config, SIGNAL(newDeviceFound(DeviceInfo)), this, SLOT(createDevice(DeviceInfo)));
-        connect(config, SIGNAL(deviceRemoved(QString)), this, SLOT(deleteDevice(QString)));
-    }
-
-    DeviceManager::~DeviceManager()
-    {
-
-    }
+   }
 }
